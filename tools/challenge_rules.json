@@ -1,0 +1,97 @@
+{
+  "_comment": "Firm rules as data. Verify at checkout; these change monthly. Percentages are of initial balance unless noted. Sources: research/prop-firms.md",
+  "_updated": "2026-10-21",
+  "firms": {
+    "ftmo_2step_swing": {
+      "name": "FTMO Challenge 2-step, Swing account",
+      "phases": [
+        {"name": "Phase 1", "profit_target_pct": 10.0, "min_trading_days": 4},
+        {"name": "Phase 2", "profit_target_pct": 5.0, "min_trading_days": 4},
+        {"name": "Funded", "profit_target_pct": null, "min_trading_days": 0}
+      ],
+      "max_daily_loss_pct": 5.0,
+      "daily_loss_basis": "equity_or_balance_at_day_start_whichever_higher",
+      "day_reset_utc": "23:00",
+      "max_total_loss_pct": 10.0,
+      "drawdown_type": "static",
+      "consistency_rule_max_day_share_pct": null,
+      "news_window_minutes": 0,
+      "weekend_holding_allowed": true,
+      "time_limit_days": null,
+      "profit_split_pct": 80,
+      "fee_refund": "first_payout",
+      "pakistan_accepted": "appears_yes_verify"
+    },
+    "ftmo_2step_standard": {
+      "name": "FTMO Challenge 2-step, Standard account",
+      "phases": [
+        {"name": "Phase 1", "profit_target_pct": 10.0, "min_trading_days": 4},
+        {"name": "Phase 2", "profit_target_pct": 5.0, "min_trading_days": 4},
+        {"name": "Funded", "profit_target_pct": null, "min_trading_days": 0}
+      ],
+      "max_daily_loss_pct": 5.0,
+      "daily_loss_basis": "equity_or_balance_at_day_start_whichever_higher",
+      "day_reset_utc": "23:00",
+      "max_total_loss_pct": 10.0,
+      "drawdown_type": "static",
+      "consistency_rule_max_day_share_pct": null,
+      "news_window_minutes": 2,
+      "weekend_holding_allowed": false,
+      "time_limit_days": null,
+      "profit_split_pct": 80,
+      "fee_refund": "first_payout",
+      "pakistan_accepted": "appears_yes_verify"
+    },
+    "the5ers_high_stakes": {
+      "name": "The5ers High Stakes (2-step)",
+      "phases": [
+        {"name": "Step 1", "profit_target_pct": 10.0, "min_trading_days": 3},
+        {"name": "Step 2", "profit_target_pct": 5.0, "min_trading_days": 3},
+        {"name": "Funded", "profit_target_pct": null, "min_trading_days": 0}
+      ],
+      "max_daily_loss_pct": 5.0,
+      "daily_loss_basis": "balance_at_day_start",
+      "day_reset_utc": "00:00",
+      "max_total_loss_pct": 10.0,
+      "drawdown_type": "static",
+      "consistency_rule_max_day_share_pct": null,
+      "news_window_minutes": 2,
+      "weekend_holding_allowed": true,
+      "time_limit_days": null,
+      "profit_split_pct": 80,
+      "fee_refund": "funded_stage",
+      "pakistan_accepted": "appears_yes_verify"
+    },
+    "fundednext_stellar_2step": {
+      "name": "FundedNext Stellar 2-step",
+      "phases": [
+        {"name": "Phase 1", "profit_target_pct": 8.0, "min_trading_days": 5},
+        {"name": "Phase 2", "profit_target_pct": 5.0, "min_trading_days": 5},
+        {"name": "Funded", "profit_target_pct": null, "min_trading_days": 0}
+      ],
+      "max_daily_loss_pct": 5.0,
+      "daily_loss_basis": "equity_or_balance_at_day_start_whichever_higher",
+      "day_reset_utc": "00:00",
+      "max_total_loss_pct": 10.0,
+      "drawdown_type": "static",
+      "consistency_rule_max_day_share_pct": null,
+      "news_window_minutes": 0,
+      "weekend_holding_allowed": true,
+      "time_limit_days": null,
+      "profit_split_pct": 80,
+      "fee_refund": "verify",
+      "pakistan_accepted": "yes_official"
+    }
+  },
+  "house_rules": {
+    "risk_per_trade_pct": 0.75,
+    "risk_per_trade_pct_gold": 0.5,
+    "risk_per_trade_pct_first_month": 0.5,
+    "max_open_risk_pct": 1.5,
+    "weekly_loss_cap_pct": 2.25,
+    "monthly_loss_cap_pct": 4.0,
+    "monthly_target_pct": 3.0,
+    "risk_after_target_pct": 0.5,
+    "min_distance_to_breach_pct": 2.0
+  }
+}

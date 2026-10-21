@@ -1,0 +1,15 @@
+# local / secrets
+.env
+*.local
+.DS_Store
+
+# python
+__pycache__/
+*.pyc
+.venv/
+
+# screenshots are large; keep them local, reference by filename in the CSV
+journal/screenshots/
+
+# personal exports from brokers/firms
+journal/exports/

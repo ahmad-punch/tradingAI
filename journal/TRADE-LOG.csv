@@ -1,0 +1,1 @@
+trade_id,date_open,date_close,phase,account,market,direction,setup_version,bias_d1,location,trigger_time_h4,entry,stop,target,risk_pct,planned_r,result_r,mae_r,days_held,rules_followed,checklist_bias,checklist_location,checklist_trigger,checklist_sl_set,checklist_size_computed,checklist_news_clear,checklist_correlation_ok,screenshot,notes
