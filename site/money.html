@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Money and budget - tradingAI</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/app.js"></script>
+<script src="assets/calc.js"></script>
+<style>
+  .tw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tw table { min-width: 560px; }
+  .statgrid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .statgrid .card { margin: 0; padding: 12px; }
+  .stat .num { overflow-wrap: anywhere; font-size: 1.4rem; }
+  .stat .sub { color: var(--muted); font-size: .78rem; }
+  .progress.warnbar > span { background: var(--warn); }
+  .progress.badbar > span { background: var(--bad); }
+  .msg { min-height: 1.2em; font-size: .9rem; margin-top: 6px; }
+  .msg.bad { color: var(--bad); } .msg.ok { color: var(--ok); }
+  .full { grid-column: 1 / -1; }
+  .kv { grid-template-columns: minmax(0, max-content) minmax(0, 1fr); }
+  .kv > * { overflow-wrap: anywhere; }
+  @media (max-width: 520px) { .kv { grid-template-columns: 1fr; gap: 0 } .kv > span.muted { margin-top: 8px; font-size: .85rem; } }
+  .flag { display: flex; gap: 10px; align-items: flex-start; padding: 8px 4px; border-bottom: 1px dashed var(--line); }
+  .flag:last-child { border-bottom: 0; }
+  .flag > div { flex: 1; }
+  .nowrap { white-space: nowrap; }
+  .big { font-size: 1.15rem; font-weight: 700; }
+  .badge { white-space: nowrap; }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<h1>Money</h1>
+<p class="meta">Every dollar in and out, the $600 envelope, the stop rule and the payout rule.</p>
+
+<!-- 1. Budget -->
+<h2 id="budget">The envelope</h2>
+<div class="card">
+  <div class="plain">
+    <p>Think of a real envelope with $600 in it. Exam fees for trading firms come out of that envelope and nothing else, for the first 12 months. When it's empty, we stop paying for exams until next year, or until money the trading itself earned can pay. It is never topped up from salary.</p>
+  </div>
+  <div class="detail">
+    <p>Decision D-004: maximum $600 on challenge fees in the first 12 months from the first paid fee; separate envelope; no mid-year top-ups; maximum two paid attempts inside it. A ledger row counts as a challenge fee when its item contains the word "challenge" and it has an Out amount. Other outgoings (tooling) are capped separately at $20/month (docs/05).</p>
+  </div>
+  <div class="statgrid" id="cards"></div>
+  <div class="progress" id="bar" style="margin-top:12px"><span></span></div>
+  <p class="small muted" id="bar-note"></p>
+  <div id="budget-warn"></div>
+</div>
+
+<!-- 2. Ledger -->
+<h2 id="ledger">Ledger</h2>
+<div class="card">
+  <p class="plain">Write down every payment and every payout, however small. Nothing is "too small to log".</p>
+  <p class="detail">Stored under <code>ledger</code>. Same columns as tracking/MONEY-LEDGER.md. Name challenge fees with the word "challenge" so they count against the envelope.</p>
+  <form class="inline" id="lf">
+    <label class="f">Date<input type="date" id="lf-date" required></label>
+    <label class="f">Item<input type="text" id="lf-item" list="dl-items" required placeholder="FTMO 25k Swing challenge fee"></label>
+    <label class="f">Out (USD)<input type="number" id="lf-out" min="0" step="0.01" inputmode="decimal"></label>
+    <label class="f">In (USD)<input type="number" id="lf-in" min="0" step="0.01" inputmode="decimal"></label>
+    <label class="f">Rail<select id="lf-rail"><option>USDT P2P</option><option>card</option><option>Rise</option><option>wire</option><option>other</option></select></label>
+    <label class="f">Receipt ref<input type="text" id="lf-receipt" placeholder="invoice no. / tx hash"></label>
+    <div class="full"><button class="btn primary" type="submit">Add to ledger</button><div id="lf-msg" class="msg"></div></div>
+  </form>
+  <datalist id="dl-items"><option value="FTMO 25k Swing challenge fee"><option value="The5ers High Stakes challenge fee"><option value="FundedNext Stellar challenge fee"><option value="TradingView subscription"><option value="Payout"><option value="Challenge fee refund"></datalist>
+  <div class="tw" id="ledger-table" style="margin-top:12px"></div>
+</div>
+
+<!-- 3. Stop rule -->
+<h2 id="stop">Stop-rule check</h2>
+<div class="card">
+  <div class="plain">
+    <p>Before starting, we agreed on the signs that mean "stop the whole project". Stopping is a respectable outcome, not a failure. Some of the signs the page can see from the numbers. The rest only you can answer, and the boxes below are deliberately not saved: answer them fresh and honestly each time you open this page.</p>
+  </div>
+  <div class="detail"><p>docs/05 "The stop rule". Rules 1-2 are computed from <code>ledger</code> and <code>postmortems</code>; rules 3-5 are a self-check that is not persisted.</p></div>
+  <h3>From the numbers</h3>
+  <div id="auto-flags"></div>
+  <h3>Honest self-check</h3>
+  <form id="self" autocomplete="off" onsubmit="return false">
+    <label class="flag"><input type="checkbox"><div>The Phase 2 gate has been missed twice (two extensions).</div></label>
+    <label class="flag"><input type="checkbox"><div>I have hidden a loss, or a fee, from my spouse or family.</div></label>
+    <label class="flag"><input type="checkbox"><div>I have borrowed money, from anyone, to pay a fee.</div></label>
+    <label class="flag"><input type="checkbox"><div>I have traded during work hours against the plan.</div></label>
+    <label class="flag"><input type="checkbox"><div>I have moved a stop loss further away to avoid being stopped out.</div></label>
+    <label class="flag"><input type="checkbox"><div>I opened a scalping chart (below 1 hour) "just to look".</div></label>
+    <label class="flag"><input type="checkbox"><div>I bought a challenge on the same day one was breached.</div></label>
+    <label class="flag"><input type="checkbox"><div>My sleep, my work, or my family life has measurably suffered because of this.</div></label>
+  </form>
+  <div id="stop-callout"></div>
+</div>
+
+<!-- 4. Payout rule -->
+<h2 id="payouts">Payout rule</h2>
+<div class="card">
+  <div class="plain">
+    <p>When a payout arrives, half of it goes to the household straight away, every time, until the other halves have built up a $2,000 trading pot. That pot, not salary, pays for any future exams.</p>
+  </div>
+  <div class="detail">
+    <p>D-004 / docs/05: the first 50% of every payout goes to the household, never back into trading, until the bankroll of payouts reaches $2,000. Computed from ledger rows with an In amount (fee refunds included), in date order. Once the bankroll reaches $2,000 the split rule has done its job; anything after that is shown as "after the cap" and should be allocated by a decision record.</p>
+  </div>
+  <div class="statgrid" id="pay-cards"></div>
+  <div class="progress" id="pay-bar" style="margin-top:12px"><span></span></div>
+  <div class="tw" id="pay-table"></div>
+</div>
+
+<!-- 5. Firms -->
+<h2 id="firms">Firm fees (reference)</h2>
+<div class="card">
+  <p class="plain">The trading firms we could use from Pakistan, what an exam costs, and their main rules. These change often: check the firm's own site before paying anything.</p>
+  <p class="detail">From docs/02 (as of Oct 2026; verify at checkout). Full research in research/prop-firms.md.</p>
+  <div class="tw"><table style="min-width:820px">
+    <thead><tr><th>Firm</th><th>Pakistan OK?</th><th>25k 2-step fee</th><th>Targets</th><th>Daily / max loss</th><th>Swing-friendly?</th><th>Free trial</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><strong>FTMO</strong></td><td>Appears yes (verify)</td><td>~€250</td><td>10% / 5%</td><td>5% / 10% static</td><td><strong>Yes</strong> with "Swing" account: no news or weekend rules</td><td>Yes, unlimited time</td><td>Oldest, most audited. Fee refunded at 1st payout. 2-step has no consistency rule.</td></tr>
+      <tr><td><strong>FundedNext</strong></td><td><strong>Yes</strong> (official list)</td><td>~$200</td><td>8% / 5%</td><td>5% / 10%</td><td>Evaluation yes; check funded rules</td><td>Yes, 14 days</td><td>Up to 95% split. Pakistan payouts only via USDT/USDC/Rise.</td></tr>
+      <tr><td><strong>FundingPips</strong></td><td>Appears yes (verify)</td><td>~$168</td><td>8% / 5%</td><td>5% / 10% static</td><td>Evaluation yes; <strong>funded: no weekend holding</strong></td><td>Unclear</td><td>Cheapest major. Fee refunded at 4th payout.</td></tr>
+      <tr><td><strong>The5ers</strong></td><td>Appears yes (verify)</td><td>20k $165</td><td>10% / 5%</td><td>5% / 10%</td><td><strong>Yes</strong>, weekends allowed; 2-min news rule</td><td>No (money-back)</td><td>No consistency rule on High Stakes.</td></tr>
+      <tr><td><strong>Alpha Capital</strong></td><td>Appears yes (verify)</td><td>~$117</td><td>6% / 6%</td><td>3-4% / 6% static</td><td>Yes, news + weekend allowed</td><td>No</td><td>Tighter drawdown; cheaper.</td></tr>
+      <tr><td><strong>Maven</strong></td><td>Unclear jurisdiction</td><td>10k $44</td><td>8% / 5%</td><td>4% / 8%</td><td>Yes</td><td>No</td><td>Cheap; least transparent of this list.</td></tr>
+      <tr><td>E8 Markets</td><td><strong>No</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>Pakistan on official restricted list</td></tr>
+      <tr><td>Topstep (futures)</td><td><strong>No</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>Pakistan on official restricted list</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small muted">Working shortlist (open decision OD-1): FTMO Swing 2-step first, The5ers High Stakes as backup, FundedNext for diversification later. Never more than 40% of allocation at one firm once scaling: firms do close.</p>
+  <div class="callout warn">
+    <div class="plain">
+      <p><strong>Legal check first.</strong> Pakistan's central bank (the State Bank) told banks in 2022 not to process payments to offshore forex trading platforms, and treats residents trading forex abroad as breaking foreign-exchange law. Paying a firm for a pretend-money exam is probably different, because no trading money leaves the country, but nobody has confirmed that for us. So before the first fee is paid, we spend an hour with a Pakistani lawyer or accountant. Payouts are also income that may need declaring; keep every receipt.</p>
+    </div>
+    <div class="detail">
+      <p><strong>Legal note (open decision OD-6).</strong> A 2022 State Bank of Pakistan circular bars banks from processing payments to offshore forex trading platforms and treats resident forex trading abroad as a FERA violation. Prop-firm fees are a different posture (a fee for a simulated service; no trading capital remitted) but it is a grey area, not something to assume. PKR cards usually fail at checkout; USDT via P2P carries its own compliance risk. <strong>OD-6: a one-hour consultation with a Pakistani lawyer/accountant, written up in research/legal.md, before any paid fee.</strong> Payouts are foreign-source income: keep every invoice and payout record.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 6. What could this become -->
+<h2 id="scale">What could this become?</h2>
+<div class="card">
+  <p class="plain">A firm lets you trade a pretend account of a certain size (the "allocation") and pays you a share of the profit. This little calculator shows what a month could look like. It is a way to sense the scale, not a promise or a plan.</p>
+  <p class="detail">Gross = allocation × monthly %; net = gross × your split. Monthly % is clamped to 0-3% (the house monthly target is 3% and the roadmap models 1.25%). Not saved.</p>
+  <form class="inline" id="pf" onsubmit="return false">
+    <label class="f">Allocation (USD)<input type="number" id="pf-alloc" min="0" step="1000" value="50000" inputmode="decimal"></label>
+    <label class="f">Monthly return % (0-3)<input type="number" id="pf-pct" min="0" max="3" step="0.05" value="1.25" inputmode="decimal"></label>
+    <label class="f">Your split %<input type="number" id="pf-split" min="0" max="100" step="5" value="80" inputmode="decimal"></label>
+  </form>
+  <div id="pf-out"></div>
+  <div class="callout warn">
+    <p class="plain">Real months are not average months. There will be losing months that pay nothing. To earn $50,000 a month you would need about $4 million of firm money, which almost no firm gives one person, and it would take years. A realistic good outcome is $2,000-10,000 a month after 2-3 years, and most people who try never reach a first payout.</p>
+    <p class="detail">Losing months exist and pay $0; the figure is an average, not a monthly income. $50k/month needs roughly a $4M allocation at 1.5%/month, beyond most firms' per-trader caps ($1-4M) and a 4-6 year, low-probability outcome, not a plan. $2-10k/month over 2-3 years is the realistic success scenario (docs/03, Phase 5).</p>
+  </div>
+</div>
+
+</main>
+
+<script>
+TA.init({ page: 'money.html' });
+
+const C = window.TACalc;
+const $ = id => document.getElementById(id);
+const esc = TA.esc;
+const pad2 = n => String(n).padStart(2, '0');
+function todayIso() { const d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function num(v) { const t = String(v == null ? '' : v).trim(); return t === '' ? null : Number(t); }
+function usd(n, d) { d = d === undefined ? 2 : d; return (n < 0 ? '−$' : '$') + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+function msg(id, text, cls) { const el = $(id); el.textContent = text; el.className = 'msg ' + (cls || ''); }
+function card(num, lbl, sub) { return `<div class="card stat"><div class="num">${num}</div><div class="lbl">${lbl}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div>`; }
+function bar(el, pct, cls) { el.querySelector('span').style.width = Math.max(0, Math.min(100, pct)) + '%'; el.className = 'progress ' + (cls || ''); }
+
+/* ---------- budget + ledger ---------- */
+function renderBudget(sm) {
+  $('cards').innerHTML =
+    card(usd(C.BUDGET_CAP, 0), 'Envelope (year 1)', 'D-004') +
+    card(usd(sm.year1Fees), 'Challenge fees', `${sm.challengeFeeCount} fee(s) logged`) +
+    card(`<span style="color:${sm.remaining <= 0 ? 'var(--bad)' : 'inherit'}">${usd(sm.remaining)}</span>`, 'Left in the envelope') +
+    card(usd(sm.totalOut), 'Total out', 'everything, incl. tooling') +
+    card(usd(sm.totalIn), 'Total in', 'payouts and refunds') +
+    card(usd(sm.net), 'Net so far', sm.net < 0 ? 'cost of the project' : 'ahead');
+  bar($('bar'), sm.pctUsed, sm.pctUsed >= 100 ? 'badbar' : sm.pctUsed >= 66 ? 'warnbar' : '');
+  $('bar-note').innerHTML = `${sm.pctUsed.toFixed(0)}% of the envelope used.` + (sm.windowStart ? ` Year-1 window: ${esc(sm.windowStart)} to ${esc(sm.windowEnd)} (12 months from the first paid fee).` : ' The 12-month window starts with the first paid challenge fee.') +
+    (sm.laterFees ? ` Fees after the window: ${usd(sm.laterFees)} (need a new year's budget or payouts).` : '');
+  let w = '';
+  if (sm.remaining <= 0) w += `<div class="callout bad">The envelope is empty. No more challenge fees this year unless payouts fund them.</div>`;
+  else if (sm.challengeFeeCount && sm.remaining < 117) w += `<div class="callout warn">${usd(sm.remaining)} left: less than the cheapest 2-step fee in the reference table. Treat the envelope as spent.</div>`;
+  if (sm.challengeFeeCount > 2) w += `<div class="callout bad">${sm.challengeFeeCount} challenge fees logged. D-004 allows at most two paid attempts inside the first budget.</div>`;
+  sm.overToolingMonths.forEach(([m, v]) => { w += `<div class="callout warn">${esc(m)}: ${usd(v)} of non-challenge spending. The tooling cap is $${C.TOOLING_CAP_MONTH}/month.</div>`; });
+  $('budget-warn').innerHTML = w;
+}
+function renderLedger(sm) {
+  if (!sm.rows.length) { $('ledger-table').innerHTML = '<p class="muted small">Nothing logged yet. Cash at risk so far: $0.</p>'; return; }
+  let ro = 0, ri = 0;
+  $('ledger-table').innerHTML = `<table><thead><tr><th>Date</th><th>Item</th><th>Out</th><th>In</th><th>Running out</th><th>Running in</th><th>Rail</th><th>Receipt</th><th></th></tr></thead><tbody>` +
+    sm.rows.map(r => { ro += Number(r.out) || 0; ri += Number(r.in) || 0; return `<tr data-id="${esc(r.id)}"><td class="nowrap">${esc(r.date)}</td><td>${esc(r.item)}${C.isChallengeFee(r) ? ' <span class="badge warn">fee</span>' : ''}</td><td>${Number(r.out) ? usd(Number(r.out)) : ''}</td><td>${Number(r.in) ? usd(Number(r.in)) : ''}</td><td>${usd(ro)}</td><td>${usd(ri)}</td><td>${esc(r.rail)}</td><td class="small">${esc(r.receipt)}</td><td><button class="btn small danger" data-act="del" type="button">Delete</button></td></tr>`; }).join('') +
+    '</tbody></table>';
+}
+$('ledger-table').addEventListener('click', e => {
+  const b = e.target.closest('[data-act="del"]'); if (!b) return;
+  const id = b.closest('tr').dataset.id, r = TA.list('ledger').find(x => x.id === id);
+  if (r && confirm(`Delete the ledger row "${r.item}" (${r.date})? Every dollar should stay logged; only delete mistakes.`)) TA.remove('ledger', id);
+});
+$('lf-date').value = todayIso();
+$('lf').addEventListener('submit', e => {
+  e.preventDefault();
+  const date = $('lf-date').value, item = $('lf-item').value.trim(), out = num($('lf-out').value) || 0, inn = num($('lf-in').value) || 0;
+  if (!date || !item) return msg('lf-msg', 'Add a date and what it was for.', 'bad');
+  if (isNaN(out) || isNaN(inn) || out < 0 || inn < 0) return msg('lf-msg', 'Amounts are positive numbers in USD (use Out for money leaving, In for money arriving).', 'bad');
+  if (!out && !inn) return msg('lf-msg', 'Enter an Out or an In amount.', 'bad');
+  if (out > 0 && /challenge/i.test(item)) {
+    const sm = C.ledgerSummary(TA.list('ledger'));
+    if (sm.year1Fees + out > C.BUDGET_CAP && !confirm(`This fee takes challenge spending to ${usd(sm.year1Fees + out)}, over the $${C.BUDGET_CAP} envelope (D-004). Log it anyway? (Logging the truth is always right; the stop rule will flag it.)`)) return;
+  }
+  TA.push('ledger', { date, item, out, in: inn, rail: $('lf-rail').value, receipt: $('lf-receipt').value.trim() });
+  ['lf-item', 'lf-out', 'lf-in', 'lf-receipt'].forEach(id => { $(id).value = ''; });
+  msg('lf-msg', 'Logged.', 'ok');
+});
+
+/* ---------- stop rule ---------- */
+function flagRow(state, title, detail) {
+  const b = state === 'bad' ? '<span class="badge bad">triggered</span>' : state === 'warn' ? '<span class="badge warn">check</span>' : '<span class="badge ok">clear</span>';
+  return `<div class="flag">${b}<div><strong>${title}</strong><div class="small muted">${detail}</div></div></div>`;
+}
+let autoTriggered = false;
+function renderStopAuto(sm) {
+  const pms = TA.list('postmortems'), dev = pms.filter(p => p.varianceOrDeviation === 'deviation').length;
+  const r1 = sm.year1Fees >= C.BUDGET_CAP && !sm.passedEvidence;
+  const r1warn = sm.year1Fees >= C.BUDGET_CAP && sm.passedEvidence;
+  const r2 = sm.challengeFeeCount >= 2 && dev >= 2;
+  const r2warn = sm.challengeFeeCount >= 2 && !r2;
+  autoTriggered = r1 || r2;
+  $('auto-flags').innerHTML =
+    flagRow(r1 ? 'bad' : r1warn ? 'warn' : 'ok', '1. Loss budget used up without a passed challenge',
+      `${usd(sm.year1Fees)} of ${usd(C.BUDGET_CAP, 0)} spent on challenge fees. ` + (sm.passedEvidence ? 'A payout (or an item mentioning "passed") is logged, so a challenge was passed.' : 'No payout or "passed" item logged yet.')) +
+    flagRow(r2 ? 'bad' : r2warn ? 'warn' : 'ok', '2. Two paid challenges failed because rules were broken',
+      `${sm.challengeFeeCount} paid challenge fee(s) in the ledger; ${dev} post-mortem(s) marked "deviation" on the <a href="journal.html#postmortems">journal page</a>.` +
+      (r2warn ? ' Two fees are logged: if both attempts failed and the post-mortems say rules were broken, this rule triggers. Write the post-mortems honestly.' : ''));
+  renderStopCallout();
+}
+function renderStopCallout() {
+  const manual = [...document.querySelectorAll('#self input[type=checkbox]')].some(c => c.checked);
+  $('stop-callout').innerHTML = (autoTriggered || manual)
+    ? `<div class="callout bad"><div class="big">By the plan, the project stops here. Log a decision.</div><p class="plain">This was agreed in advance, when things were calm, exactly for this moment. Stopping is a respectable result. Write it down on the <a href="decisions.html">Decisions</a> page and talk to your family before anything else.</p><p class="detail">docs/05: "the project stops, and the stop is logged as a decision". Record it on <a href="decisions.html">Decisions</a>. The repo stays as a record.</p></div>`
+    : '<div class="callout ok">No stop signal from the numbers or the self-check today.</div>';
+}
+$('self').addEventListener('change', renderStopCallout);
+// Fresh honesty each visit: never restore these boxes (also defeats the browser's back/forward form restore).
+window.addEventListener('pageshow', () => { document.querySelectorAll('#self input[type=checkbox]').forEach(c => { c.checked = false; }); renderStopCallout(); });
+
+/* ---------- payouts ---------- */
+function renderPayouts() {
+  const p = C.payoutSplit(TA.list('ledger'));
+  $('pay-cards').innerHTML = card(usd(p.household), 'To the household') + card(usd(p.bankroll), 'Trading bankroll', `target ${usd(C.BANKROLL_TARGET, 0)}`) +
+    card(usd(p.afterCap), 'After the cap', p.afterCap ? 'allocate by decision record' : '—');
+  bar($('pay-bar'), p.bankroll / C.BANKROLL_TARGET * 100, p.reached ? 'ok' : '');
+  $('pay-table').innerHTML = p.lines.length ? `<table><thead><tr><th>Date</th><th>Item</th><th>Amount</th><th>Household</th><th>Bankroll</th><th>After cap</th><th>Bankroll after</th></tr></thead><tbody>` +
+    p.lines.map(l => `<tr><td class="nowrap">${esc(l.date)}</td><td>${esc(l.item)}</td><td>${usd(l.amount)}</td><td>${usd(l.household)}</td><td>${usd(l.bankroll)}</td><td>${l.free ? usd(l.free) : '—'}</td><td>${usd(l.bankrollAfter)}</td></tr>`).join('') + '</tbody></table>'
+    : '<p class="muted small">No payouts yet. First realistic payout: month 10-14 of the plan, if every gate is passed.</p>';
+}
+
+/* ---------- projection ---------- */
+function renderProjection() {
+  const raw = num($('pf-pct').value);
+  const p = C.projection(num($('pf-alloc').value), raw, num($('pf-split').value));
+  const clamped = raw !== null && !isNaN(raw) && raw !== p.monthlyPct;
+  $('pf-out').innerHTML = `<div class="statgrid" style="margin-top:12px">${card(usd(p.gross, 0), 'Gross per month', `${p.monthlyPct}% of ${usd(p.allocation, 0)}`)}${card(usd(p.net, 0), 'Your share per month', `${p.splitPct}% split, before tax`)}</div>` +
+    (clamped ? `<p class="small msg bad">Monthly % limited to ${p.monthlyPct}%. Above 3% a month is outside the plan.</p>` : '');
+}
+['pf-alloc', 'pf-pct', 'pf-split'].forEach(id => $(id).addEventListener('input', renderProjection));
+
+/* ---------- wiring ---------- */
+function renderAll() {
+  const sm = C.ledgerSummary(TA.list('ledger'));
+  renderBudget(sm); renderLedger(sm); renderStopAuto(sm); renderPayouts();
+}
+renderAll(); renderProjection();
+document.addEventListener('ta:change', renderAll);
+</script>
+</body>
+</html>

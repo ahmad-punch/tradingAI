@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trade journal - tradingAI</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/app.js"></script>
+<script src="assets/calc.js"></script>
+<style>
+  .tw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tw table { min-width: 560px; }
+  .tw table.wide { min-width: 980px; }
+  td input[type=text], td input[type=number], td input[type=date], td select { min-width: 84px; padding: 4px 6px; }
+  .kv { grid-template-columns: minmax(0, max-content) minmax(0, 1fr); }
+  .kv > * { overflow-wrap: anywhere; }
+  @media (max-width: 520px) { .kv { grid-template-columns: 1fr; gap: 0 } .kv > span.muted { margin-top: 8px; font-size: .85rem; } }
+  .stat .num { overflow-wrap: anywhere; font-size: 1.4rem; }
+  .stat .sub { color: var(--muted); font-size: .78rem; }
+  .statgrid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+  .statgrid .card { margin: 0; padding: 12px; }
+  .winbtns { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .winbtns .btn.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
+  .actions .btn { margin: 0; }
+  .toc { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .92rem; }
+  .msg { min-height: 1.2em; font-size: .9rem; margin-top: 6px; }
+  .msg.bad { color: var(--bad); } .msg.ok { color: var(--ok); }
+  .num-pos { color: var(--ok); } .num-neg { color: var(--bad); }
+  .nowrap { white-space: nowrap; }
+  .chk .check label { flex: 1; }
+  .full { grid-column: 1 / -1; }
+  .two { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: start; }
+  .breachbig { font-size: 1.15rem; font-weight: 700; }
+  textarea.copybox { min-height: 160px; font-family: var(--mono); font-size: .8rem; }
+  details.item { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin: 8px 0; background: var(--panel); }
+  details.item p { margin: .3em 0; }
+  .badge { white-space: nowrap; }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<h1>Trade journal</h1>
+<p class="meta">Every trade, every rule, every week. The page checks the numbers the same way the Python tools in <code>tools/</code> do.</p>
+
+<div id="selftest-fail"></div>
+
+<div class="card">
+  <div class="plain">
+    <p><strong>What this page is for.</strong> Before each trade you tick a short checklist. After it closes you write down the result. The page then works out whether the plan is actually working, and whether you would have broken the trading firm's exam rules.</p>
+    <p><strong>R means "one unit of risk".</strong> If you risk $100 and make $250, that trade is +2.5R. If you lose the $100, it is −1R. Using R instead of dollars lets us compare trades of different sizes fairly.</p>
+  </div>
+  <div class="detail">
+    <p>Journal, position sizing, statistics, prop-rule replay, weekly review and post-mortems. All figures are computed in <code>assets/calc.js</code>, a line-for-line port of <code>tools/journal_stats.py</code> (<code>load</code>/<code>stats</code>), <code>tools/rule_guard.py</code> (<code>parse</code>/<code>replay</code>) and <code>tools/position_size.py</code>. Trades are converted to TRADE-LOG.csv rows first, then fed through the ported loaders, so the numbers here equal what the Python tools print on the exported CSV.</p>
+    <p>R = result ÷ initial risk. Percent figures derived from R use one risk % (the setting below), as <code>journal_stats.py --risk-pct</code> does; the rule guard uses each trade's own <code>risk_pct</code>.</p>
+  </div>
+  <nav class="toc small">
+    <a href="#settings">Settings</a><a href="#sizer">Position size</a><a href="#newtrade">New trade</a><a href="#trades">Trades</a>
+    <a href="#stats">Stats &amp; gate</a><a href="#guard">Rule guard</a><a href="#backtest">Backtest</a><a href="#review">Weekly review</a><a href="#postmortems">Post-mortems</a>
+  </nav>
+</div>
+
+<!-- 1. Settings -->
+<h2 id="settings">Settings</h2>
+<div class="card">
+  <form class="inline" id="set-form" onsubmit="return false">
+    <label class="f">Account balance (USD)<input type="number" id="set-balance" min="0" step="100" inputmode="decimal"></label>
+    <label class="f">Firm rules<select id="set-firm"></select></label>
+    <label class="f">Stage<select id="set-phase"></select></label>
+    <label class="f">Risk per trade (%)<input type="number" id="set-risk" min="0" step="0.05" inputmode="decimal"></label>
+  </form>
+  <p class="small muted" id="set-summary"></p>
+  <div id="set-warn"></div>
+  <p class="plain small muted">These four numbers describe the account you are practising on. They are saved in this browser and used by every calculation below.</p>
+  <p class="detail small muted">Stored under <code>settings</code>. Firm rules are <code>tools/challenge_rules.json</code> embedded in calc.js (<code>_updated</code> <span id="rules-updated"></span>); verify at checkout.</p>
+</div>
+
+<!-- 2. Position size -->
+<h2 id="sizer">Position size calculator</h2>
+<div class="card">
+  <div class="plain">
+    <p>You never <em>choose</em> how big a trade is. You decide how much you are willing to lose (for example 0.75% of the account), you decide where the stop loss goes based on the chart, and the size falls out of the arithmetic. That way a bad trade always costs the same small, planned amount, no matter how confident you felt.</p>
+  </div>
+  <div class="detail">
+    <p><code>lots = (balance × risk%) ÷ (SL pips × pip value per lot)</code>, with contract size and pip size from the <code>SPECS</code> table in position_size.py. USD account assumed; for a pair whose quote currency is not USD, enter the quote→USD rate (e.g. JPY ≈ 1/150 ≈ 0.0067; GBP ≈ 1.27 for EURGBP).</p>
+  </div>
+  <form class="inline" id="ps-form" onsubmit="return false">
+    <label class="f">Balance (USD)<input type="number" id="ps-balance" step="100" inputmode="decimal"></label>
+    <label class="f">Risk %<input type="number" id="ps-risk" step="0.05" inputmode="decimal"></label>
+    <label class="f">Instrument<select id="ps-pair"></select></label>
+    <label class="f">Entry price<input type="number" id="ps-entry" step="any" inputmode="decimal" placeholder="1.0850"></label>
+    <label class="f">Stop price<input type="number" id="ps-stop" step="any" inputmode="decimal" placeholder="1.0800"></label>
+    <label class="f">Quote → USD<input type="number" id="ps-q" step="any" value="1" inputmode="decimal"></label>
+  </form>
+  <div id="ps-out" class="msg"></div>
+  <div class="actions"><button class="btn" id="ps-use" type="button" disabled>Use this: tick "size computed" and copy to the trade form</button></div>
+</div>
+
+<!-- 3. Checklist + new trade -->
+<h2 id="newtrade">Pre-trade checklist and new trade</h2>
+<div class="card">
+  <p class="plain">Tick each box only if it is honestly true. If any box is empty, the trade breaks the plan. You can still record it (recording it is better than hiding it), but it will count against your rule-following score.</p>
+  <p class="detail">All seven must be true for <code>rules_followed = Y</code>. Any unticked item forces <code>N</code> after a confirm. Items mirror docs/04 (bias, location, trigger, SL, sizing, news filter, correlation / max exposure).</p>
+  <div class="chk" id="chk"></div>
+  <form class="inline" id="tf" style="margin-top:12px">
+    <label class="f">Opened<input type="date" id="tf-open" required></label>
+    <label class="f">Closed (blank while open)<input type="date" id="tf-close"></label>
+    <label class="f">Stage<select id="tf-phase"><option value="demo">demo</option><option value="trial">trial</option><option value="challenge">challenge</option><option value="funded">funded</option></select></label>
+    <label class="f">Account<input type="text" id="tf-account" list="dl-accounts" value="MT5 demo 25k"></label>
+    <label class="f">Market<input type="text" id="tf-market" list="dl-markets" autocomplete="off" placeholder="EURUSD"></label>
+    <label class="f">Direction<select id="tf-dir"><option value="long">long</option><option value="short">short</option></select></label>
+    <label class="f">Risk %<input type="number" id="tf-risk" step="0.05" inputmode="decimal"></label>
+    <label class="f">Planned R<input type="number" id="tf-planned" step="0.1" value="2.5" inputmode="decimal"></label>
+    <label class="f">Result R (blank while open)<input type="number" id="tf-result" step="any" inputmode="decimal"></label>
+    <label class="f">Worst point against you (MAE, R)<input type="number" id="tf-mae" step="any" min="0" inputmode="decimal"></label>
+    <label class="f full">Notes<textarea id="tf-notes" rows="2"></textarea></label>
+    <label class="check full"><input type="checkbox" id="tf-other"><span>Something else on this trade broke the plan (moved the stop, oversized, traded in work hours...)</span></label>
+    <div class="full"><button class="btn primary" id="tf-submit" type="submit">Log this trade</button><div id="tf-msg" class="msg"></div></div>
+  </form>
+  <datalist id="dl-markets"><option value="EURUSD"><option value="GBPUSD"><option value="XAUUSD"><option value="US500"><option value="NAS100"><option value="other"></datalist>
+  <datalist id="dl-accounts"></datalist>
+  <p class="small muted plain">MAE = how far the trade went against you at its worst, in R. Example: risked $100, it was down $40 at the worst moment, then won: MAE is 0.4. Leave it blank if you don't know; the rule guard then assumes the worst (a full 1R for losers).</p>
+  <p class="small muted detail">Risk defaults to the setting, 0.5% for XAUUSD (house rule <code>risk_per_trade_pct_gold</code>). Use 0.5% in the first month on any account. Blank MAE → rule guard assumes 1.0R for losers, 0.5R for winners.</p>
+</div>
+
+<h3>Open trades</h3>
+<div id="open-list"></div>
+
+<!-- 4. Trade table -->
+<h2 id="trades">All trades</h2>
+<div class="card">
+  <div class="actions" style="margin-top:0">
+    <label class="f" style="flex-direction:row;align-items:center;gap:8px">Stage <select id="flt-phase" style="width:auto"><option value="all">all</option><option value="demo">demo</option><option value="trial">trial</option><option value="challenge">challenge</option><option value="funded">funded</option></select></label>
+    <button class="btn small" id="csv-export" type="button">Export CSV</button>
+    <label class="btn small">Import CSV<input type="file" id="csv-import" accept=".csv,text/csv" style="display:none"></label>
+  </div>
+  <div id="csv-msg" class="msg"></div>
+  <p class="small muted plain">The stage filter also applies to the statistics below. Export makes a spreadsheet file you can keep as a backup.</p>
+  <p class="small muted detail">Export writes the exact <code>journal/TRADE-LOG.csv</code> header (29 columns) in chronological order, so <code>python3 tools/journal_stats.py</code> and <code>tools/rule_guard.py</code> read it unchanged. Import upserts by <code>trade_id</code>; Y/YES/1/TRUE = yes; columns this page doesn't edit (entry, stop, screenshot...) are kept and written back.</p>
+  <div class="tw" id="trade-table"></div>
+</div>
+
+<!-- 5. Stats -->
+<h2 id="stats">Statistics and the Phase 2 gate</h2>
+<div class="card">
+  <div class="plain">
+    <p>These numbers answer one question: if you keep trading exactly like this, do you make or lose money over many trades? The most important one is <strong>rule adherence</strong> (did you follow the plan?), then <strong>expectancy</strong> (what an average trade earns, in R).</p>
+  </div>
+  <div class="detail"><p>Port of <code>journal_stats.stats()</code>. Window = trades closed on or after the date shown (<code>--since</code>); "%" figures are R × the risk % setting.</p></div>
+  <div class="winbtns" id="win-btns">
+    <button class="btn small" data-w="7" type="button">Last 7 days</button><button class="btn small" data-w="30" type="button">Last 30 days</button>
+    <button class="btn small" data-w="90" type="button">Last 90 days</button><button class="btn small" data-w="all" type="button">All</button>
+  </div>
+  <p class="small muted" id="stats-window"></p>
+  <div class="two">
+    <div id="stats-out"></div>
+    <div>
+      <h3 style="margin-top:0">Phase 2 gate <span class="small muted">(last 90 days, always)</span></h3>
+      <div id="gate2"></div>
+      <p class="small muted plain">The gate is the pass mark for moving from free practice to paying for a real exam. It is measured over the last three months, whatever window you picked on the left.</p>
+      <p class="small muted detail">docs/03 Phase 2 exit gate. Not checkable here: a passed or near-passed free trial, and decision D-006. The 60-day breach row uses the rule-guard selection below.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 6. Rule guard -->
+<h2 id="guard">Rule guard</h2>
+<div class="card">
+  <div class="plain">
+    <p>This is the firm's exam rules, checked automatically every time you log a trade, so you find out here instead of on a real $200 fee. It replays your trades day by day and asks: on any day, did you lose more than the daily limit, or fall below the overall loss line?</p>
+  </div>
+  <div class="detail">
+    <p>Port of <code>rule_guard.replay()</code> with its conservative model: realised P&amp;L booked on the close date; each trade's worst floating loss (MAE × risk) assumed on every day it is open; daily loss measured from the day-start balance against initial balance; max loss static unless <code>drawdown_type</code> is trailing. Trades without a result (still open) are skipped, as in <code>parse()</code>, so a live open position is not in this replay.</p>
+  </div>
+  <form class="inline" onsubmit="return false">
+    <label class="f">Account<select id="rg-account"></select></label>
+    <label class="f">Stage<select id="rg-phase"></select></label>
+  </form>
+  <div id="rg-out"></div>
+</div>
+
+<!-- 7. Backtest -->
+<h2 id="backtest">Backtest log and the Phase 1 gate</h2>
+<div class="card">
+  <p class="plain">Before risking anything, you replay old charts and record what the plan would have done, 100 times. If the plan doesn't make money on old charts, it won't on new ones.</p>
+  <p class="detail">Same <code>stats()</code> function; % figures at the house 0.75% risk, as the Phase 1 gate in docs/03 specifies. Export writes the <code>journal/BACKTEST-LOG.csv</code> header.</p>
+  <form class="inline" id="bf">
+    <label class="f">Setup date<input type="date" id="bf-date" required></label>
+    <label class="f">Sample year (blank = from date)<input type="number" id="bf-year" min="1990" max="2100" step="1"></label>
+    <label class="f">Market<input type="text" id="bf-market" list="dl-markets" placeholder="EURUSD"></label>
+    <label class="f">Direction<select id="bf-dir"><option value="long">long</option><option value="short">short</option></select></label>
+    <label class="f">Planned R<input type="number" id="bf-planned" step="0.1" value="2.5" inputmode="decimal"></label>
+    <label class="f">Result R<input type="number" id="bf-result" step="any" inputmode="decimal" required></label>
+    <label class="f">MAE R<input type="number" id="bf-mae" step="any" min="0" inputmode="decimal"></label>
+    <label class="check"><input type="checkbox" id="bf-rules" checked><span>The written rules allowed this trade</span></label>
+    <label class="f full">Notes<input type="text" id="bf-notes"></label>
+    <div class="full"><button class="btn primary" type="submit">Add backtest trade</button><div id="bf-msg" class="msg"></div></div>
+  </form>
+  <div class="actions">
+    <button class="btn small" id="bt-export" type="button">Export CSV</button>
+    <label class="btn small">Import CSV<input type="file" id="bt-import" accept=".csv,text/csv" style="display:none"></label>
+  </div>
+  <div id="bt-msg" class="msg"></div>
+  <div class="two" style="margin-top:10px">
+    <div id="bt-stats"></div>
+    <div><h3 style="margin-top:0">Phase 1 gate</h3><div id="gate1"></div>
+      <p class="small muted plain">Also needed and not checkable here: a second person reads the rules and marks the same 10 charts, and decision D-005 is written.</p></div>
+  </div>
+  <details style="margin-top:10px"><summary>Backtest trades (<span id="bt-count">0</span>)</summary><div class="tw" id="bt-table"></div></details>
+</div>
+
+<!-- 8. Weekly review -->
+<h2 id="review">Weekly review</h2>
+<div class="card">
+  <p class="plain">Every Sunday, 20 minutes. Look at the numbers, write down every rule you broke, and pick one thing to do differently. One thing, about how you trade, not about how much you make.</p>
+  <p class="detail">From journal/WEEKLY-REVIEW-TEMPLATE.md. Numbers are a frozen snapshot of <code>stats()</code> (7d / 30d / stage filter) plus the rule-guard result at save time.</p>
+  <div id="wr-last"></div>
+  <form class="inline" id="wr">
+    <label class="f">Week ending<input type="date" id="wr-week" required></label>
+    <label class="f">Mood (1-10)<input type="number" id="wr-mood" min="1" max="10" step="1"></label>
+    <div class="full tw" id="wr-numbers"></div>
+    <label class="f full">Rules I broke (every one, even small) <span id="wr-hint"></span><textarea id="wr-broken" rows="2"></textarea></label>
+    <label class="f full">Trades I skipped that met the rules (and why)<textarea id="wr-skipped" rows="2"></textarea></label>
+    <label class="f full">The one thing I'll do differently (process, not outcome)<input type="text" id="wr-one"></label>
+    <label class="f full">Notes (what drove the mood, gate status, decisions proposed)<textarea id="wr-notes" rows="2"></textarea></label>
+    <div class="full"><button class="btn primary" type="submit">Save weekly review</button><div id="wr-msg" class="msg"></div></div>
+  </form>
+  <div class="actions">
+    <button class="btn" id="ai-copy" type="button">Copy AI review prompt + last 30 days as CSV</button>
+  </div>
+  <p class="small muted plain">This copies a ready-made message for an AI assistant: your last 30 days of trades plus instructions to check your discipline. It is told not to give trade ideas.</p>
+  <div id="ai-box"></div>
+  <h3>Past reviews</h3>
+  <div id="wr-list"></div>
+</div>
+
+<!-- 9. Post-mortems -->
+<h2 id="postmortems">Post-mortems</h2>
+<div class="card">
+  <p class="plain">When an account is blown (for real or in the rule guard), a month hits −4%, or a gate is failed: stop, wait 48 hours, then write this before any new trade. The key question is whether you lost while following the rules (bad luck, carry on) or because you broke them (go back a phase for 60 days).</p>
+  <p class="detail">From journal/POST-MORTEMS.md. Variance → continue; deviation → 60 days back a phase. Two paid-challenge failures marked "deviation" trigger stop rule 2 on the Money page.</p>
+  <form class="inline" id="pm">
+    <label class="f">Date<input type="date" id="pm-date" required></label>
+    <label class="f">Account / event<input type="text" id="pm-event" required placeholder="MT5 demo 25k, daily-loss breach"></label>
+    <label class="f full">What happened (facts, with the journal rows)<textarea id="pm-facts" rows="2"></textarea></label>
+    <label class="f full">Rule adherence on the trades involved<input type="text" id="pm-adh"></label>
+    <fieldset class="full" style="border:1px solid var(--line);border-radius:8px">
+      <legend class="small muted">Variance within the rules, or a deviation?</legend>
+      <label class="check"><input type="radio" name="pm-vd" value="variance"><span>Variance: I followed the rules; the losses were normal bad luck</span></label>
+      <label class="check"><input type="radio" name="pm-vd" value="deviation"><span>Deviation: I broke the rules</span></label>
+    </fieldset>
+    <label class="f full">Root cause (behavioural, not market)<textarea id="pm-root" rows="2"></textarea></label>
+    <label class="f full">Change proposed (decision ID, or "none")<input type="text" id="pm-change"></label>
+    <label class="check full"><input type="checkbox" id="pm-cool"><span>Cooling-off period observed (48 hours, no trades)</span></label>
+    <div class="full"><button class="btn primary" type="submit">Save post-mortem</button><div id="pm-msg" class="msg"></div></div>
+  </form>
+  <div id="pm-list"></div>
+</div>
+
+<p class="small muted" id="selftest-ok"></p>
+</main>
+
+<script>
+TA.init({ page: 'journal.html' });
+
+const C = window.TACalc, RULES = C.RULES, HOUSE = RULES.house_rules;
+const $ = id => document.getElementById(id);
+const esc = TA.esc;
+const pad2 = n => String(n).padStart(2, '0');
+function todayIso() { const d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function num(v) { const t = String(v == null ? '' : v).trim(); return t === '' ? null : Number(t); }
+function usd(n) { return (n < 0 ? '−$' : '$') + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function signed(n, d, suf) { if (n === null || n === undefined || isNaN(n)) return '—'; const s = (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toFixed(d) + (suf || ''); return `<span class="${n > 0 ? 'num-pos' : n < 0 ? 'num-neg' : ''}">${s}</span>`; }
+function msg(id, text, cls) { const el = $(id); el.textContent = text; el.className = 'msg ' + (cls || ''); }
+function badge(ok, yes, no) { return `<span class="badge ${ok ? 'ok' : 'bad'}">${ok ? (yes || 'ok') : (no || 'not yet')}</span>`; }
+function download(name, text) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/csv' })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+function newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+/* ---------- settings ---------- */
+const DEF = { accountBalance: 25000, firm: 'ftmo_2step_swing', phaseIdx: 0, riskPct: 0.75 };
+function settings() {
+  const s = Object.assign({}, DEF, TA.store.get('settings', {}));
+  if (!RULES.firms[s.firm]) s.firm = DEF.firm;
+  const n = RULES.firms[s.firm].phases.length;
+  s.phaseIdx = Math.min(Math.max(0, parseInt(s.phaseIdx, 10) || 0), n - 1);
+  s.accountBalance = Number(s.accountBalance) > 0 ? Number(s.accountBalance) : DEF.accountBalance;
+  s.riskPct = Number(s.riskPct) > 0 ? Number(s.riskPct) : DEF.riskPct;
+  return s;
+}
+function saveSettings(patch) { TA.store.set('settings', Object.assign({}, TA.store.get('settings', {}), patch)); }
+function firm() { return RULES.firms[settings().firm]; }
+
+function fillPhaseSelect() {
+  const s = settings();
+  $('set-phase').innerHTML = RULES.firms[s.firm].phases.map((p, i) => `<option value="${i}">${esc(p.name)}</option>`).join('');
+  $('set-phase').value = String(s.phaseIdx);
+}
+function renderSettingsSummary() {
+  const s = settings(), f = RULES.firms[s.firm], p = f.phases[s.phaseIdx];
+  $('set-summary').textContent = `${f.name}: daily loss ${f.max_daily_loss_pct}%, max loss ${f.max_total_loss_pct}% (${f.drawdown_type}). ${p.name}: ` +
+    (p.profit_target_pct === null ? 'no profit target' : `target +${p.profit_target_pct}%, at least ${p.min_trading_days} trading days`) +
+    `. Consistency rule: ${f.consistency_rule_max_day_share_pct === null ? 'none' : f.consistency_rule_max_day_share_pct + '%'}. Weekend holding ${f.weekend_holding_allowed ? 'allowed' : 'NOT allowed'}.`;
+  $('set-warn').innerHTML = s.riskPct > 1 ? `<div class="callout bad">Risk ${esc(s.riskPct)}% per trade is above 1%. That violates the house rules (0.75%, 0.5% for gold and the first month).</div>`
+    : s.riskPct > HOUSE.risk_per_trade_pct ? `<div class="callout warn">Risk ${esc(s.riskPct)}% is above the house rule of ${HOUSE.risk_per_trade_pct}%.</div>` : '';
+}
+function initSettings() {
+  const s = settings();
+  $('rules-updated').textContent = RULES._updated;
+  $('set-balance').value = s.accountBalance;
+  $('set-risk').value = s.riskPct;
+  $('set-firm').innerHTML = Object.keys(RULES.firms).map(k => `<option value="${k}">${esc(RULES.firms[k].name)}</option>`).join('');
+  $('set-firm').value = s.firm;
+  fillPhaseSelect(); renderSettingsSummary();
+  $('set-balance').addEventListener('change', e => { const v = num(e.target.value); if (v > 0) { saveSettings({ accountBalance: v }); $('ps-balance').value = v; calcPS(); } });
+  $('set-risk').addEventListener('change', e => { const v = num(e.target.value); if (v > 0) { saveSettings({ riskPct: v }); $('ps-risk').value = v; defaultTradeRisk(); calcPS(); } });
+  $('set-firm').addEventListener('change', e => { saveSettings({ firm: e.target.value, phaseIdx: 0 }); fillPhaseSelect(); });
+  $('set-phase').addEventListener('change', e => saveSettings({ phaseIdx: parseInt(e.target.value, 10) || 0 }));
+}
+
+/* ---------- position size ---------- */
+let lastPS = null;
+function initPS() {
+  const s = settings();
+  $('ps-balance').value = s.accountBalance; $('ps-risk').value = s.riskPct;
+  $('ps-pair').innerHTML = Object.keys(C.SPECS).map(k => `<option>${k}</option>`).join('');
+  $('ps-pair').addEventListener('change', () => {
+    const p = $('ps-pair').value;
+    if (p.endsWith('USD') || ['US500', 'NAS100', 'US30'].includes(p)) $('ps-q').value = 1;
+    if (p === 'XAUUSD') $('ps-risk').value = HOUSE.risk_per_trade_pct_gold;
+    calcPS();
+  });
+  ['ps-balance', 'ps-risk', 'ps-entry', 'ps-stop', 'ps-q'].forEach(id => $(id).addEventListener('input', calcPS));
+  $('ps-use').addEventListener('click', () => {
+    if (!lastPS) return;
+    const cb = document.querySelector('#chk input[data-k="sizeComputed"]'); if (cb) cb.checked = true;
+    $('tf-risk').value = $('ps-risk').value; $('tf-market').value = lastPS.pair; updateSubmit();
+    location.hash = '#newtrade';
+  });
+  calcPS();
+}
+function calcPS() {
+  const bal = num($('ps-balance').value), risk = num($('ps-risk').value), entry = num($('ps-entry').value), stop = num($('ps-stop').value), q = num($('ps-q').value);
+  const out = $('ps-out'); lastPS = null; $('ps-use').disabled = true;
+  if (entry === null || stop === null) { out.className = 'msg muted'; out.textContent = 'Enter an entry and a stop price to compute the size.'; return; }
+  if (!(bal > 0) || !(risk > 0) || isNaN(entry) || isNaN(stop) || !(q > 0)) { out.className = 'msg bad'; out.textContent = 'Balance, risk %, prices and quote→USD must be positive numbers.'; return; }
+  let r;
+  try { r = C.positionSize(bal, risk, entry, stop, $('ps-pair').value, q); }
+  catch (e) { out.className = 'msg bad'; out.textContent = e.message; return; }
+  lastPS = r; $('ps-use').disabled = false;
+  const actualRisk = r.lots_floor_0_01 * r.sl_pips * r.pip_value_per_lot_usd;
+  let warn = '';
+  if (risk > 1.0) warn += `<div class="callout bad">WARNING: risk above 1% violates house rules (tools/challenge_rules.json).</div>`;
+  if (r.lots < 0.01) warn += `<div class="callout warn">The computed size is below the 0.01-lot minimum. Trading 0.01 lots would risk about ${usd(actualRisk)}, more than planned. <span class="plain">Skip this trade or use a stop that the chart justifies; never move the stop just to fit.</span></div>`;
+  out.className = 'msg';
+  out.innerHTML = `<div class="kv" style="margin-top:8px">
+    <span class="muted">Money at risk</span><strong>${usd(r.risk_amount_usd)}</strong>
+    <span class="muted">Stop distance</span><span>${r.sl_pips} pips</span>
+    <span class="muted">Value of 1 pip on 1 lot</span><span>${usd(r.pip_value_per_lot_usd)} <span class="detail muted">(${r.pip_value_per_lot_usd})</span></span>
+    <span class="muted">Exact size</span><span>${r.lots} lots</span>
+    <span class="muted">Size to use</span><strong>${r.lots_floor_0_01.toFixed(2)} lots</strong>
+  </div><p class="small muted plain">Use the rounded-down size: rounding up would risk a little more than planned.</p>
+  <p class="small muted detail"><code>lots_floor_0_01</code> = max(0.01, trunc(lots×100)/100). Risk at that size ≈ ${usd(actualRisk)}.</p>${warn}`;
+}
+
+/* ---------- checklist + new trade ---------- */
+const CHECKS = [
+  ['bias', 'Daily bias is clear (price above a rising / below a falling 50-day EMA) and this trade is with it'],
+  ['location', 'Price is at a planned level: a prior daily swing level or the 20-EMA zone'],
+  ['trigger', 'A 4-hour candle has closed back in the direction of the bias (the trigger)'],
+  ['slSet', 'Stop loss is set at entry (beyond the swing + 1 ATR) and will never be moved further away'],
+  ['sizeComputed', 'Position size was computed with the calculator, not chosen'],
+  ['newsClear', 'No high-impact news for these currencies in the next 24 hours, and not Friday after 12:00 London'],
+  ['correlationOk', 'Not correlated with a trade already open; at most 2 open trades and 1.5% total open risk'],
+];
+function initChecklist() {
+  $('chk').innerHTML = CHECKS.map(([k, t]) => `<div class="check"><input type="checkbox" id="ck-${k}" data-k="${k}"><label for="ck-${k}">${esc(t)}</label></div>`).join('');
+  $('chk').addEventListener('change', updateSubmit);
+  updateSubmit();
+}
+function checklistState() { const o = {}; CHECKS.forEach(([k]) => { o[k] = $('ck-' + k).checked; }); return o; }
+function checklistComplete() { return CHECKS.every(([k]) => $('ck-' + k).checked); }
+function updateSubmit() {
+  const ok = checklistComplete(), b = $('tf-submit');
+  b.textContent = ok ? 'Log this trade' : 'Checklist incomplete: this trade breaks the rules';
+  b.className = ok ? 'btn primary' : 'btn danger';
+}
+function defaultTradeRisk() {
+  const m = $('tf-market').value.trim().toUpperCase();
+  $('tf-risk').value = m === 'XAUUSD' ? HOUSE.risk_per_trade_pct_gold : settings().riskPct;
+}
+function initTradeForm() {
+  $('tf-open').value = todayIso();
+  defaultTradeRisk();
+  $('tf-market').addEventListener('change', defaultTradeRisk);
+  $('tf').addEventListener('submit', e => {
+    e.preventDefault();
+    const dateOpen = $('tf-open').value, dateClose = $('tf-close').value;
+    const market = $('tf-market').value.trim().toUpperCase();
+    const riskPct = num($('tf-risk').value), plannedR = num($('tf-planned').value), resultR = num($('tf-result').value), maeR = num($('tf-mae').value);
+    if (!dateOpen) return msg('tf-msg', 'Add the date the trade was opened.', 'bad');
+    if (!market) return msg('tf-msg', 'Add the market.', 'bad');
+    if (!(riskPct > 0)) return msg('tf-msg', 'Risk % must be a positive number.', 'bad');
+    if (dateClose && dateClose < dateOpen) return msg('tf-msg', 'The close date is before the open date.', 'bad');
+    if ([plannedR, resultR, maeR].some(v => v !== null && isNaN(v))) return msg('tf-msg', 'Planned R, result R and MAE must be numbers.', 'bad');
+    if (resultR !== null && !dateClose) return msg('tf-msg', 'A trade with a result needs a close date.', 'bad');
+    if (maeR !== null && maeR < 0) return msg('tf-msg', 'MAE is a size (how far against you), so it is 0 or more.', 'bad');
+    const complete = checklistComplete();
+    if (!complete && !confirm('The checklist is incomplete, so by the plan this trade should not be taken.\n\nRecording it honestly is still the right thing. It will be logged as "rules broken". Log it?')) return;
+    const t = {
+      dateOpen, dateClose: dateClose || '', phase: $('tf-phase').value, account: $('tf-account').value.trim() || 'unnamed',
+      market, direction: $('tf-dir').value, riskPct, plannedR, resultR, maeR,
+      daysHeld: dateClose ? C.daysBetween(dateOpen, dateClose) : null,
+      rulesFollowed: complete && !$('tf-other').checked, checklist: checklistState(), notes: $('tf-notes').value.trim(),
+    };
+    TA.push('trades', t);
+    CHECKS.forEach(([k]) => { $('ck-' + k).checked = false; });
+    ['tf-close', 'tf-result', 'tf-mae', 'tf-notes'].forEach(id => { $(id).value = ''; });
+    $('tf-other').checked = false; updateSubmit();
+    msg('tf-msg', `Logged ${market} ${t.direction}${t.rulesFollowed ? '' : ' (rules broken)'}${resultR === null ? '; it is in Open trades until you close it' : ''}.`, t.rulesFollowed ? 'ok' : 'bad');
+  });
+}
+
+/* ---------- open trades ---------- */
+function renderOpen() {
+  const open = TA.list('trades').filter(t => t.resultR === null || t.resultR === undefined || t.resultR === '');
+  if (!open.length) { $('open-list').innerHTML = '<p class="muted small">No open trades.</p>'; return; }
+  $('open-list').innerHTML = `<div class="tw"><table><thead><tr><th>Opened</th><th>Market</th><th>Stage / account</th><th>Risk</th><th>Close date</th><th>Result R</th><th>MAE R</th><th></th></tr></thead><tbody>` +
+    open.map(t => `<tr data-id="${esc(t.id)}"><td class="nowrap">${esc(t.dateOpen)}</td><td>${esc(t.market)} ${esc(t.direction)}</td><td>${esc(t.phase)} · ${esc(t.account)}</td><td>${TA.fmt(t.riskPct)}%</td>
+      <td><input type="date" class="oc-close" value="${todayIso()}"></td><td><input type="number" step="any" class="oc-result" inputmode="decimal"></td><td><input type="number" step="any" min="0" class="oc-mae" value="${t.maeR == null ? '' : esc(t.maeR)}" inputmode="decimal"></td>
+      <td><button class="btn small primary" data-act="close" type="button">Close</button></td></tr>`).join('') + '</tbody></table></div><div id="oc-msg" class="msg"></div>';
+}
+$('open-list').addEventListener('click', e => {
+  const b = e.target.closest('[data-act="close"]'); if (!b) return;
+  const tr = b.closest('tr'), id = tr.dataset.id, t = TA.list('trades').find(x => x.id === id); if (!t) return;
+  const dc = tr.querySelector('.oc-close').value, r = num(tr.querySelector('.oc-result').value), m = num(tr.querySelector('.oc-mae').value);
+  if (!dc || dc < t.dateOpen) return msg('oc-msg', 'Pick a close date on or after the open date.', 'bad');
+  if (r === null || isNaN(r)) return msg('oc-msg', 'Enter the result in R (negative for a loss, e.g. −1).', 'bad');
+  if (m !== null && (isNaN(m) || m < 0)) return msg('oc-msg', 'MAE must be 0 or more.', 'bad');
+  TA.update('trades', id, { dateClose: dc, resultR: r, maeR: m, daysHeld: C.daysBetween(t.dateOpen, dc) });
+});
+
+/* ---------- trade table ---------- */
+let editingId = null;
+function phaseFilter() { return $('flt-phase').value; }
+function filteredTrades() { const f = phaseFilter(); return TA.list('trades').filter(t => f === 'all' || t.phase === f); }
+function newestFirst(a, b) { const ka = (a.dateClose || a.dateOpen || '') + (a.dateOpen || ''), kb = (b.dateClose || b.dateOpen || '') + (b.dateOpen || ''); return ka < kb ? 1 : ka > kb ? -1 : 0; }
+function renderTable() {
+  const rows = filteredTrades().sort(newestFirst);
+  if (!rows.length) { $('trade-table').innerHTML = '<p class="muted small">No trades yet' + (phaseFilter() === 'all' ? '' : ' for this stage') + '.</p>'; return; }
+  $('trade-table').innerHTML = `<table class="wide"><thead><tr><th>Opened</th><th>Closed</th><th>Stage</th><th>Account</th><th>Market</th><th>Risk %</th><th>Planned R</th><th>Result R</th><th>MAE R</th><th>Days</th><th>Rules</th><th>Checklist</th><th>Notes</th><th></th></tr></thead><tbody>` +
+    rows.map(t => {
+      const ck = t.checklist || {}, nck = CHECKS.filter(([k]) => ck[k]).length, hasCk = Object.keys(ck).length > 0;
+      const open = t.resultR === null || t.resultR === undefined || t.resultR === '';
+      if (t.id === editingId) return `<tr data-id="${esc(t.id)}"><td>${esc(t.dateOpen)}</td><td><input type="date" class="ed-close" value="${esc(t.dateClose || '')}"></td><td>${esc(t.phase)}</td><td>${esc(t.account)}</td><td>${esc(t.market)} ${esc(t.direction)}</td><td>${TA.fmt(t.riskPct)}</td><td>${TA.fmt(t.plannedR, 1)}</td>
+        <td><input type="number" step="any" class="ed-result" value="${open ? '' : esc(t.resultR)}"></td><td><input type="number" step="any" min="0" class="ed-mae" value="${t.maeR == null ? '' : esc(t.maeR)}"></td><td></td>
+        <td><select class="ed-rules"><option value="Y"${t.rulesFollowed ? ' selected' : ''}>Y</option><option value="N"${t.rulesFollowed ? '' : ' selected'}>N</option></select></td><td>${hasCk ? nck + '/7' : '—'}</td><td>${esc(t.notes)}</td>
+        <td class="nowrap"><button class="btn small primary" data-act="save" type="button">Save</button> <button class="btn small" data-act="cancel" type="button">Cancel</button></td></tr>`;
+      return `<tr data-id="${esc(t.id)}"><td class="nowrap">${esc(t.dateOpen)}</td><td class="nowrap">${open ? '<span class="badge warn">open</span>' : esc(t.dateClose)}</td><td>${esc(t.phase)}</td><td>${esc(t.account)}</td><td>${esc(t.market)} ${esc(t.direction)}</td>
+        <td>${TA.fmt(t.riskPct)}</td><td>${TA.fmt(t.plannedR, 1)}</td><td>${open ? '—' : signed(Number(t.resultR), 2)}</td><td>${t.maeR == null || t.maeR === '' ? '—' : TA.fmt(t.maeR)}</td>
+        <td>${t.dateClose ? (C.daysBetween(t.dateOpen, t.dateClose) ?? '—') : '—'}</td><td>${t.rulesFollowed ? '<span class="badge ok">Y</span>' : '<span class="badge bad">N</span>'}</td>
+        <td>${hasCk ? (nck === 7 ? '7/7' : `<span class="badge bad">${nck}/7</span>`) : '—'}</td><td class="small">${esc(t.notes)}</td>
+        <td class="nowrap"><button class="btn small" data-act="edit" type="button">Edit</button> <button class="btn small danger" data-act="del" type="button">Delete</button></td></tr>`;
+    }).join('') + '</tbody></table><div id="ed-msg" class="msg"></div>';
+}
+$('trade-table').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const tr = b.closest('tr'), id = tr.dataset.id, t = TA.list('trades').find(x => x.id === id); if (!t) return;
+  const act = b.dataset.act;
+  if (act === 'edit') { editingId = id; renderTable(); }
+  else if (act === 'cancel') { editingId = null; renderTable(); }
+  else if (act === 'del') { if (confirm(`Delete the ${t.market} trade opened ${t.dateOpen}? This cannot be undone (Export first if unsure).`)) TA.remove('trades', id); }
+  else if (act === 'save') {
+    const dc = tr.querySelector('.ed-close').value, r = num(tr.querySelector('.ed-result').value), m = num(tr.querySelector('.ed-mae').value);
+    if (dc && dc < t.dateOpen) return msg('ed-msg', 'Close date is before the open date.', 'bad');
+    if (r !== null && (isNaN(r) || !dc)) return msg('ed-msg', 'A result needs a valid number and a close date.', 'bad');
+    if (m !== null && (isNaN(m) || m < 0)) return msg('ed-msg', 'MAE must be 0 or more.', 'bad');
+    editingId = null;
+    TA.update('trades', id, { dateClose: dc, resultR: r, maeR: m, daysHeld: dc ? C.daysBetween(t.dateOpen, dc) : null, rulesFollowed: tr.querySelector('.ed-rules').value === 'Y' });
+  }
+});
+
+/* CSV export / import (trades and backtest share the code path) */
+function exportCsv(key, header, toRow, name) {
+  const rows = TA.list(key).slice().sort(C.chrono).map(toRow);
+  download(name, C.csvWrite(header, rows));
+}
+function importCsv(file, key, required, fromRow, msgId) {
+  const rd = new FileReader();
+  rd.onload = () => {
+    const p = C.csvParse(rd.result);
+    const missing = required.filter(h => !p.header.includes(h));
+    if (missing.length) return msg(msgId, 'Not the expected log format: missing column(s) ' + missing.join(', ') + '.', 'bad');
+    const cur = TA.list(key).slice(); let added = 0, updated = 0;
+    p.rows.forEach(r => {
+      const o = fromRow(r);
+      if (!o.id) o.id = newId();
+      const i = cur.findIndex(x => x.id === o.id);
+      if (i >= 0) { cur[i] = Object.assign({}, cur[i], o); updated++; } else { cur.push(o); added++; }
+    });
+    TA.store.set(key, cur);
+    msg(msgId, `Imported ${added} new and updated ${updated} existing row(s).`, 'ok');
+  };
+  rd.readAsText(file);
+}
+$('csv-export').addEventListener('click', () => exportCsv('trades', C.TRADE_HEADER, C.tradeToCsvRow, 'TRADE-LOG.csv'));
+$('csv-import').addEventListener('change', e => { const f = e.target.files[0]; if (f) importCsv(f, 'trades', ['date_open', 'result_r', 'rules_followed'], r => { const t = C.csvRowToTrade(r); if (!t.phase) t.phase = 'demo'; return t; }, 'csv-msg'); e.target.value = ''; });
+$('flt-phase').addEventListener('change', () => { renderTable(); renderStats(); renderReviewNumbers(); });
+
+/* ---------- stats ---------- */
+const LABELS = [
+  ['trades', 'Closed trades', 'How many finished trades are counted.', v => String(v)],
+  ['rule_adherence', 'Rule adherence', 'Share of trades taken exactly by the plan. The headline number; the target is 95%.', v => (v * 100).toFixed(1) + '%'],
+  ['expectancy_r', 'Expectancy per trade', 'What an average trade earns, in R. +0.25R means each trade adds a quarter of what you risk, on average, over many trades.', v => signed(v, 3, 'R')],
+  ['win_rate', 'Win rate', 'Share of trades that made money. Means little on its own: winning 40% is fine if the wins are 2.5× the losses.', v => (v * 100).toFixed(1) + '%'],
+  ['avg_win_r', 'Average win', 'Size of the typical winner, in R.', v => v.toFixed(2) + 'R'],
+  ['avg_loss_r', 'Average loss', 'Size of the typical loser, in R. Should be close to 1R if stops are respected.', v => v.toFixed(2) + 'R'],
+  ['net_r', 'Net result', 'All results added up, in R.', v => signed(v, 2, 'R')],
+  ['profit_factor', 'Profit factor', 'Total won ÷ total lost. Above 1 means winning more than losing.', v => v === 'inf' ? '∞ (no losses yet)' : v.toFixed(2)],
+  ['max_drawdown_r', 'Worst drop', 'Biggest fall from a high point, in R.', v => v.toFixed(2) + 'R'],
+  ['max_drawdown_pct_at_risk', 'Worst drop as % of account', 'The same drop as a share of the account at the risk % used.', v => v.toFixed(2) + '%'],
+  ['net_pct_at_risk', 'Net result as % of account', 'All results as a share of the account at the risk % used.', v => signed(v, 2, '%')],
+  ['longest_losing_streak', 'Longest losing streak', 'Most losses in a row. Expect 6-8 in a row at some point even with a good plan.', v => String(v)],
+  ['expectancy_rules_followed', 'Expectancy when rules followed', 'Average trade when you followed the plan.', v => v === null ? '—' : signed(v, 3, 'R')],
+  ['expectancy_rules_broken', 'Expectancy when rules broken', 'Average trade when you did not. If this is worse, the rules are protecting you.', v => v === null ? '—' : signed(v, 3, 'R')],
+];
+function statsTable(s, riskPct) {
+  if (!s.trades) return '<p class="muted">No completed trades in this window.</p>';
+  const head = ['trades', 'rule_adherence', 'expectancy_r', 'max_drawdown_pct_at_risk'];
+  const cards = '<div class="statgrid">' + head.map(k => { const L = LABELS.find(x => x[0] === k); return `<div class="card stat"><div class="num">${L[3](s[k])}</div><div class="lbl">${L[1]}</div></div>`; }).join('') + '</div>';
+  const rows = LABELS.map(([k, lbl, plain, f]) => `<tr><td>${lbl}<div class="small muted plain">${plain}</div><div class="small muted detail"><code>${k}</code></div></td><td class="nowrap">${f(s[k])}</td></tr>`).join('');
+  const bm = Object.keys(s.by_market_net_r).map(k => `${esc(k || '(blank)')}: ${signed(s.by_market_net_r[k], 2, 'R')}`).join(' · ');
+  return cards + `<div class="tw"><table style="min-width:0"><tbody>${rows}<tr><td>Net result by market<div class="small muted detail"><code>by_market_net_r</code></div></td><td>${bm}</td></tr></tbody></table></div><p class="small muted">% figures use ${esc(riskPct)}% risk per trade.</p>`;
+}
+function gateValue(c) {
+  if (c.value === null || c.value === undefined) return '';
+  const v = c.id === 'adherence' ? (c.value * 100).toFixed(1) + '%' : (c.id === 'maxdd' || c.id === 'net') ? c.value.toFixed(2) + '%' : c.id === 'expectancy' ? c.value.toFixed(3) + 'R' : String(c.value);
+  return ` <span class="muted small">(now ${esc(v)})</span>`;
+}
+function gateList(checks) {
+  return '<div>' + checks.map(c => `<div class="check"><span style="flex:1">${esc(c.label)}${gateValue(c)}</span>${badge(c.ok, 'met', 'not yet')}</div>`).join('') + '</div>';
+}
+let win = '30';
+function sinceFor(w) { return w === 'all' ? null : C.addDaysIso(todayIso(), -(Number(w) - 1)); }
+function tradeStats(list, since) { return C.stats(C.load(list.slice().sort(C.chrono).map(C.tradeToCsvRow), since), settings().riskPct); }
+function renderStats() {
+  document.querySelectorAll('#win-btns [data-w]').forEach(b => b.classList.toggle('on', b.dataset.w === win));
+  const since = sinceFor(win), list = filteredTrades();
+  $('stats-window').textContent = (since ? `Trades closed on or after ${since}` : 'All closed trades') + (phaseFilter() === 'all' ? ', all stages.' : `, stage "${phaseFilter()}".`);
+  $('stats-out').innerHTML = statsTable(tradeStats(list, since), settings().riskPct);
+  const s90 = tradeStats(list, sinceFor('90'));
+  const g = C.phase2Gate(s90);
+  const guard = guardRun();
+  const since60 = C.addDaysIso(todayIso(), -59);
+  const recent = guard.out.breaches.filter(b => b[0] >= since60);
+  g.push({ label: 'No simulated breach in the last 60 days (rule guard selection)', ok: guard.n > 0 && recent.length === 0, value: guard.n ? recent.length + ' breach(es)' : null });
+  $('gate2').innerHTML = gateList(g) + (g.every(x => x.ok) ? '<div class="callout ok">Every measurable Phase 2 condition is met. Next: the free-trial condition and decision D-006, written before any money moves.</div>' : '');
+}
+$('win-btns').addEventListener('click', e => { const b = e.target.closest('[data-w]'); if (!b) return; win = b.dataset.w; renderStats(); });
+
+/* ---------- rule guard ---------- */
+let rgTouched = false;
+function guardSelection() { return { account: $('rg-account').value || 'all', phase: $('rg-phase').value || 'all' }; }
+function fillGuardSelects() {
+  const trades = TA.list('trades');
+  const accts = [...new Set(trades.map(t => t.account).filter(Boolean))].sort();
+  const phases = [...new Set(trades.map(t => t.phase).filter(Boolean))];
+  const latest = trades.slice().sort(newestFirst)[0];
+  const cur = { a: $('rg-account').value, p: $('rg-phase').value };
+  $('rg-account').innerHTML = '<option value="all">all accounts</option>' + accts.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join('');
+  $('rg-phase').innerHTML = '<option value="all">all stages</option>' + phases.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  const pick = (sel, v, fb) => { sel.value = [...sel.options].some(o => o.value === v) ? v : fb; };
+  // Until the user picks, follow the most recent trade's account and stage (a replay across mixed accounts means little).
+  pick($('rg-account'), rgTouched ? cur.a : (latest ? latest.account : 'all'), 'all');
+  pick($('rg-phase'), rgTouched ? cur.p : (latest ? latest.phase : 'all'), 'all');
+  $('dl-accounts').innerHTML = [...new Set(['MT5 demo 25k'].concat(accts))].map(a => `<option value="${esc(a)}">`).join('');
+}
+function guardRun() {
+  const sel = guardSelection(), s = settings();
+  const list = TA.list('trades').filter(t => (sel.account === 'all' || t.account === sel.account) && (sel.phase === 'all' || t.phase === sel.phase));
+  const p = C.parseTrades(list.slice().sort(C.chrono).map(C.tradeToCsvRow), HOUSE.risk_per_trade_pct);
+  return { sel, s, out: C.replay(p.trades, RULES.firms[s.firm], HOUSE, s.accountBalance, s.phaseIdx), skipped: p.skipped, n: p.trades.length, open: list.filter(t => t.resultR == null || t.resultR === '').length };
+}
+function distBadge(v) { return `<span class="badge ${v < 0 ? 'bad' : v < HOUSE.min_distance_to_breach_pct ? 'warn' : 'ok'}">${v.toFixed(2)}%</span>`; }
+function renderGuard() {
+  const g = guardRun(), o = g.out, f = RULES.firms[g.s.firm];
+  let h = `<p class="small muted">${esc(f.name)} · ${esc(f.phases[g.s.phaseIdx].name)} · ${usd(g.s.accountBalance)} · ${g.n} closed trade(s)${g.open ? `, ${g.open} open (not replayed)` : ''}.</p>`;
+  if (!g.n) { $('rg-out').innerHTML = h + '<p class="muted">No closed trades for this selection yet.</p>'; return; }
+  if (o.breaches.length) {
+    h += `<div class="callout bad"><div class="breachbig">Treat this account as blown. 48 hours off. Write a post-mortem.</div>
+      <p class="plain">On at least one day the firm's loss limit would have been crossed. On a real challenge the account would be closed and the fee gone. Stop trading this account, wait two days, then fill in the <a href="#postmortems">post-mortem</a>.</p>
+      <p>Breaches (treat the account as blown from the first one):</p><ul>${o.breaches.map(b => `<li><code>${esc(b[0])}</code> ${esc(b[1])}</li>`).join('')}</ul></div>`;
+  } else h += '<div class="callout ok">No breaches.</div>';
+  if (o.worst_distance_to_daily_breach_pct < o.house_min_distance_pct)
+    h += `<div class="callout warn">WARNING: came within ${o.worst_distance_to_daily_breach_pct.toFixed(2)}% of the daily limit; house rule is ${o.house_min_distance_pct.toFixed(1)}%.<span class="plain"> The plan says never get closer than 2% to a limit: that is too close for comfort.</span></div>`;
+  const funded = o.target_pct === null;
+  h += `<div class="kv">
+    <span class="muted">Stage</span><span>${esc(o.phase)}</span>
+    <span class="muted">Days covered</span><span>${o.days_span} calendar days, ${o.trading_days} trading day(s) <span class="muted">(minimum ${o.min_days})</span> ${badge(o.trading_days >= o.min_days, 'enough', 'too few')}</span>
+    <span class="muted">Net result</span><span>${signed(o.net_pct, 2, '%')} ${funded ? '<span class="muted">(no target when funded)</span>' : `<span class="muted">of +${o.target_pct}% target</span> ${badge(o.net_pct >= o.target_pct, 'reached', 'not yet')}`}</span>
+    <span class="muted">Closest to daily limit</span><span>${distBadge(o.worst_distance_to_daily_breach_pct)} <span class="muted small">left before the ${f.max_daily_loss_pct}% daily limit, at the worst moment (house minimum ${o.house_min_distance_pct}%)</span></span>
+    <span class="muted">Closest to max-loss line</span><span>${distBadge(o.worst_distance_to_max_breach_pct)} <span class="muted small">left above the ${f.max_total_loss_pct}% max-loss line</span></span>
+    <span class="muted">Consistency</span><span>${esc(o.consistency || 'no consistency rule for this firm (or no profit yet)')}</span>
+    <span class="muted">Passed</span><span>${funded ? '<span class="badge">n/a: funded stage has no target</span>' : badge(o.passed, 'yes, would have passed', 'no')}</span>
+  </div>`;
+  h += `<p class="small muted plain">"Closest to the limit" is how much room was left on the worst day. Bigger is safer. Below 2% is a warning even if nothing broke.</p>`;
+  if (g.skipped.length) h += `<p class="small bad">Skipped ${g.skipped.length} row(s) with unreadable dates or numbers: ${g.skipped.map(x => esc(x.id) + ' (' + esc(x.error) + ')').join('; ')}</p>`;
+  h += `<details class="detail" style="margin-top:8px"><summary>Day-by-day replay</summary><div class="tw"><table><thead><tr><th>Day</th><th>Open trades</th><th>Worst equity</th><th>Daily loss %</th><th>Balance at day end</th></tr></thead><tbody>` +
+    o._days.map(d => `<tr><td class="nowrap">${d.date}</td><td>${d.open}</td><td>${usd(d.equity_low)}</td><td>${d.daily_loss_pct.toFixed(2)}%</td><td>${usd(d.balance_end)}</td></tr>`).join('') + '</tbody></table></div></details>';
+  $('rg-out').innerHTML = h;
+}
+['rg-account', 'rg-phase'].forEach(id => $(id).addEventListener('change', () => { rgTouched = true; renderGuard(); renderStats(); renderReviewNumbers(); }));
+
+/* ---------- backtest ---------- */
+function initBacktest() {
+  $('bf-date').addEventListener('change', () => { if ($('bf-date').value) $('bf-year').value = $('bf-date').value.slice(0, 4); });
+  $('bf-market').addEventListener('change', () => { $('bf-market').value = $('bf-market').value.trim().toUpperCase(); });
+  $('bf').addEventListener('submit', e => {
+    e.preventDefault();
+    const date = $('bf-date').value, r = num($('bf-result').value), pr = num($('bf-planned').value), m = num($('bf-mae').value), yr = num($('bf-year').value);
+    if (!date) return msg('bf-msg', 'Add the date of the historical setup.', 'bad');
+    if (r === null || isNaN(r)) return msg('bf-msg', 'Add the result in R.', 'bad');
+    if ((pr !== null && isNaN(pr)) || (m !== null && (isNaN(m) || m < 0))) return msg('bf-msg', 'Planned R and MAE must be numbers (MAE 0 or more).', 'bad');
+    TA.push('backtest', { date, sampleYear: yr || Number(date.slice(0, 4)), market: $('bf-market').value.trim().toUpperCase(), direction: $('bf-dir').value, plannedR: pr, resultR: r, maeR: m, rulesFollowed: $('bf-rules').checked, notes: $('bf-notes').value.trim() });
+    ['bf-result', 'bf-mae', 'bf-notes', 'bf-year'].forEach(id => { $(id).value = ''; }); $('bf-rules').checked = true;
+    msg('bf-msg', `Added. ${TA.list('backtest').length} backtest trade(s) so far.`, 'ok');
+  });
+  $('bt-export').addEventListener('click', () => exportCsv('backtest', C.BACKTEST_HEADER, C.backtestToCsvRow, 'BACKTEST-LOG.csv'));
+  $('bt-import').addEventListener('change', e => { const f = e.target.files[0]; if (f) importCsv(f, 'backtest', ['date', 'result_r', 'rules_followed'], C.csvRowToBacktest, 'bt-msg'); e.target.value = ''; });
+  $('bt-table').addEventListener('click', e => {
+    const b = e.target.closest('[data-act="bdel"]'); if (!b) return;
+    if (confirm('Delete this backtest trade?')) TA.remove('backtest', b.closest('tr').dataset.id);
+  });
+}
+function renderBacktest() {
+  const list = TA.list('backtest');
+  const s = C.stats(C.load(list.slice().sort(C.chrono).map(C.backtestToCsvRow), null), HOUSE.risk_per_trade_pct);
+  $('bt-stats').innerHTML = statsTable(s, HOUSE.risk_per_trade_pct);
+  const g = C.phase1Gate(s);
+  const years = new Set(list.map(b => b.sampleYear || (b.date || '').slice(0, 4)).filter(Boolean));
+  const mkts = new Set(list.map(b => b.market).filter(Boolean));
+  g.push({ label: 'Samples from at least two different years', ok: years.size >= 2, value: years.size + ' year(s)' });
+  g.push({ label: '3-4 markets covered', ok: mkts.size >= 3, value: mkts.size + ' market(s)' });
+  $('gate1').innerHTML = gateList(g);
+  $('bt-count').textContent = list.length;
+  const rows = list.slice().sort(C.chrono).reverse();
+  $('bt-table').innerHTML = rows.length ? `<table><thead><tr><th>Date</th><th>Year</th><th>Market</th><th>Planned R</th><th>Result R</th><th>MAE R</th><th>Rules</th><th>Notes</th><th></th></tr></thead><tbody>` +
+    rows.map(b => `<tr data-id="${esc(b.id)}"><td class="nowrap">${esc(b.date)}</td><td>${esc(b.sampleYear || '')}</td><td>${esc(b.market)} ${esc(b.direction)}</td><td>${TA.fmt(b.plannedR, 1)}</td><td>${signed(Number(b.resultR), 2)}</td><td>${b.maeR == null ? '—' : TA.fmt(b.maeR)}</td><td>${b.rulesFollowed ? '<span class="badge ok">Y</span>' : '<span class="badge bad">N</span>'}</td><td class="small">${esc(b.notes)}</td><td><button class="btn small danger" data-act="bdel" type="button">Delete</button></td></tr>`).join('') + '</tbody></table>' : '<p class="muted small">No backtest trades yet.</p>';
+}
+
+/* ---------- weekly review ---------- */
+function snapshot() {
+  const all = TA.list('trades'), g = guardRun();
+  const pick = s => s.trades ? { trades: s.trades, rule_adherence: s.rule_adherence, expectancy_r: s.expectancy_r, win_rate: s.win_rate, net_r: s.net_r, max_drawdown_pct_at_risk: s.max_drawdown_pct_at_risk } : { trades: 0 };
+  return {
+    d7: pick(tradeStats(all, sinceFor('7'))), d30: pick(tradeStats(all, sinceFor('30'))),
+    phase: Object.assign({ filter: phaseFilter() }, pick(tradeStats(filteredTrades(), null))),
+    guard: { account: g.sel.account, stage: g.sel.phase, trades: g.n, breaches: g.out.breaches.length, worstDaily: g.n ? g.out.worst_distance_to_daily_breach_pct : null, worstMax: g.n ? g.out.worst_distance_to_max_breach_pct : null },
+    riskPct: settings().riskPct,
+  };
+}
+function numbersTable(n) {
+  const cols = [['7 days', n.d7], ['30 days', n.d30], ['Stage: ' + (n.phase.filter || 'all'), n.phase]];
+  const row = (lbl, f) => `<tr><td>${lbl}</td>${cols.map(([, s]) => `<td>${s.trades ? f(s) : '—'}</td>`).join('')}</tr>`;
+  const g = n.guard;
+  return `<table style="min-width:0"><thead><tr><th>Metric</th>${cols.map(c => `<th>${esc(c[0])}</th>`).join('')}</tr></thead><tbody>
+    <tr><td>Trades</td>${cols.map(([, s]) => `<td>${s.trades}</td>`).join('')}</tr>
+    ${row('Rule adherence', s => (s.rule_adherence * 100).toFixed(1) + '%')}
+    ${row('Expectancy (R)', s => signed(s.expectancy_r, 3))}
+    ${row('Win rate', s => (s.win_rate * 100).toFixed(1) + '%')}
+    ${row('Net R', s => signed(s.net_r, 2))}
+    ${row('Max DD %', s => s.max_drawdown_pct_at_risk.toFixed(2) + '%')}
+    <tr><td>Simulated breaches</td><td colspan="3">${g.trades ? g.breaches : '—'} <span class="muted small">(rule guard: ${esc(g.account)}, ${esc(g.stage)})</span></td></tr>
+    <tr><td>Room left at worst point (daily / max)</td><td colspan="3">${g.worstDaily === null ? '—' : g.worstDaily.toFixed(2) + '% / ' + g.worstMax.toFixed(2) + '%'}</td></tr>
+  </tbody></table>`;
+}
+function renderReviewNumbers() {
+  $('wr-numbers').innerHTML = numbersTable(snapshot());
+  const since7 = sinceFor('7');
+  const broken = TA.list('trades').filter(t => !t.rulesFollowed && ((t.dateClose || t.dateOpen || '') >= since7));
+  $('wr-hint').innerHTML = broken.length ? `<span class="badge bad">${broken.length} trade(s) marked rules-broken in the last 7 days</span>` : '';
+}
+function lastReview() { return TA.list('reviews').slice().sort((a, b) => (a.weekEnding || '') < (b.weekEnding || '') ? 1 : -1)[0]; }
+function renderReviews() {
+  const lr = lastReview();
+  $('wr-last').innerHTML = lr && lr.oneThing ? `<div class="callout"><strong>Last review (${esc(lr.weekEnding)}) said the one thing would be:</strong> ${esc(lr.oneThing)}<br><span class="small muted">Did it happen? Say so in the notes.</span></div>` : '';
+  const list = TA.list('reviews').slice().sort((a, b) => (a.weekEnding || '') < (b.weekEnding || '') ? 1 : -1);
+  $('wr-list').innerHTML = list.length ? list.map(r => `<details class="item" data-id="${esc(r.id)}"><summary>Week ending ${esc(r.weekEnding)}${r.mood ? ` · mood ${esc(r.mood)}/10` : ''}${r.oneThing ? ' · ' + esc(r.oneThing) : ''}</summary>
+      ${r.numbers && r.numbers.d7 ? `<div class="tw">${numbersTable(r.numbers)}</div>` : ''}
+      <p><strong>Rules broken:</strong> ${esc(r.rulesBroken || '—')}</p><p><strong>Skipped:</strong> ${esc(r.skipped || '—')}</p>
+      <p><strong>One thing:</strong> ${esc(r.oneThing || '—')}</p><p><strong>Notes:</strong> ${esc(r.notes || '—')}</p>
+      <button class="btn small danger" data-act="rdel" type="button">Delete</button></details>`).join('') : '<p class="muted small">No reviews yet.</p>';
+}
+$('wr-list').addEventListener('click', e => { const b = e.target.closest('[data-act="rdel"]'); if (b && confirm('Delete this weekly review?')) TA.remove('reviews', b.closest('details').dataset.id); });
+function initReview() {
+  $('wr-week').value = todayIso();
+  $('wr').addEventListener('submit', e => {
+    e.preventDefault();
+    const mood = num($('wr-mood').value);
+    if (!$('wr-week').value) return msg('wr-msg', 'Pick the week-ending date.', 'bad');
+    if (mood !== null && (isNaN(mood) || mood < 1 || mood > 10)) return msg('wr-msg', 'Mood is a number from 1 to 10.', 'bad');
+    TA.push('reviews', { weekEnding: $('wr-week').value, numbers: snapshot(), rulesBroken: $('wr-broken').value.trim(), skipped: $('wr-skipped').value.trim(), oneThing: $('wr-one').value.trim(), mood: mood, notes: $('wr-notes').value.trim() });
+    ['wr-broken', 'wr-skipped', 'wr-one', 'wr-notes', 'wr-mood'].forEach(id => { $(id).value = ''; });
+    msg('wr-msg', 'Saved. See you next Sunday.', 'ok');
+  });
+  $('ai-copy').addEventListener('click', copyAiPrompt);
+}
+const AI_PROMPT = 'You are reviewing a swing trader\'s journal. Do not comment on market direction or suggest trades. Using only the rows provided: (1) compute rule-adherence %, expectancy in R, win rate, net R, and max drawdown in R; (2) compare expectancy on rules_followed=Y vs N; (3) find clusters in losses by market, day of week, hour of trigger, or days held; (4) list every row where a checklist field is N and the trade was taken anyway; (5) compare this week with the previous review\'s "one thing I\'ll do differently" and say whether it happened; (6) draft the "one thing" for next week as a process change only. Be blunt. Numbers first, then at most 5 sentences of commentary.';
+function copyAiPrompt() {
+  const since = sinceFor('30');
+  const rows = TA.list('trades').filter(t => (t.dateClose || t.dateOpen || '') >= since).sort(C.chrono).map(C.tradeToCsvRow);
+  const lr = lastReview();
+  const prev = lr ? `Previous weekly review (week ending ${lr.weekEnding}):\n- Rules broken: ${lr.rulesBroken || '-'}\n- Skipped trades: ${lr.skipped || '-'}\n- One thing I'll do differently: ${lr.oneThing || '-'}\n- Mood: ${lr.mood == null ? '-' : lr.mood + '/10'}\n- Notes: ${lr.notes || '-'}` : 'Previous weekly review: none yet.';
+  const text = `${AI_PROMPT}\n\n${prev}\n\nLast 30 days of journal/TRADE-LOG.csv (${rows.length} rows, since ${since}):\n\n${C.csvWrite(C.TRADE_HEADER, rows)}`;
+  const box = () => { $('ai-box').innerHTML = '<p class="small muted">If the copy did not work, select all the text below and copy it yourself.</p><textarea class="copybox" readonly></textarea>'; const ta = $('ai-box').querySelector('textarea'); ta.value = text; return ta; };
+  const fallback = () => { const ta = box(); ta.focus(); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (e) { } $('ai-box').insertAdjacentHTML('afterbegin', `<p class="msg ${ok ? 'ok' : 'bad'}">${ok ? 'Copied to the clipboard.' : 'Could not copy automatically.'}</p>`); };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(() => { box(); $('ai-box').insertAdjacentHTML('afterbegin', `<p class="msg ok">Copied ${rows.length} trade row(s) and the prompt. Paste it into the AI chat.</p>`); }, fallback);
+  else fallback();
+}
+
+/* ---------- post-mortems ---------- */
+function initPM() {
+  $('pm-date').value = todayIso();
+  $('pm').addEventListener('submit', e => {
+    e.preventDefault();
+    const vd = (document.querySelector('input[name="pm-vd"]:checked') || {}).value;
+    if (!$('pm-date').value || !$('pm-event').value.trim()) return msg('pm-msg', 'Add the date and what account / event this is about.', 'bad');
+    if (!vd) return msg('pm-msg', 'Answer the key question: variance or deviation?', 'bad');
+    TA.push('postmortems', { date: $('pm-date').value, event: $('pm-event').value.trim(), facts: $('pm-facts').value.trim(), adherence: $('pm-adh').value.trim(), varianceOrDeviation: vd, rootCause: $('pm-root').value.trim(), change: $('pm-change').value.trim(), cooledOff: $('pm-cool').checked });
+    ['pm-event', 'pm-facts', 'pm-adh', 'pm-root', 'pm-change'].forEach(id => { $(id).value = ''; });
+    document.querySelectorAll('input[name="pm-vd"]').forEach(r => { r.checked = false; }); $('pm-cool').checked = false;
+    msg('pm-msg', vd === 'deviation' ? 'Saved. Deviation means: back one phase for 60 days before the next attempt.' : 'Saved. Variance within the rules: continue, same plan, same risk.', vd === 'deviation' ? 'bad' : 'ok');
+  });
+  $('pm-list').addEventListener('click', e => { const b = e.target.closest('[data-act="pdel"]'); if (b && confirm('Delete this post-mortem?')) TA.remove('postmortems', b.closest('details').dataset.id); });
+}
+function renderPMs() {
+  const list = TA.list('postmortems').slice().sort((a, b) => (a.date || '') < (b.date || '') ? 1 : -1);
+  $('pm-list').innerHTML = list.length ? list.map(p => `<details class="item" data-id="${esc(p.id)}"><summary>${esc(p.date)} · ${esc(p.event)} · ${p.varianceOrDeviation === 'deviation' ? '<span class="badge bad">deviation</span>' : '<span class="badge ok">variance</span>'}${p.cooledOff ? '' : ' <span class="badge warn">no cooling-off</span>'}</summary>
+    <p><strong>What happened:</strong> ${esc(p.facts || '—')}</p><p><strong>Rule adherence:</strong> ${esc(p.adherence || '—')}</p>
+    <p><strong>Root cause:</strong> ${esc(p.rootCause || '—')}</p><p><strong>Change proposed:</strong> ${esc(p.change || '—')}</p>
+    <p><strong>Next step:</strong> ${p.varianceOrDeviation === 'deviation' ? '60 days back a phase.' : 'Continue.'}</p>
+    <button class="btn small danger" data-act="pdel" type="button">Delete</button></details>`).join('') : '<p class="muted small">No post-mortems. Good.</p>';
+}
+
+/* ---------- wiring ---------- */
+function renderAll() {
+  renderSettingsSummary(); fillGuardSelects(); renderOpen(); renderTable(); renderStats(); renderGuard(); renderBacktest(); renderReviewNumbers(); renderReviews(); renderPMs();
+}
+initSettings(); initPS(); initChecklist(); initTradeForm(); initBacktest(); initReview(); initPM();
+renderAll();
+document.addEventListener('ta:change', renderAll);
+
+/* ---------- self-test: same cases as tools/tests/test_tools.py ---------- */
+(function () {
+  const res = C.selfTest();
+  res.forEach(x => console.assert(x.ok, 'TACalc self-test failed: ' + x.name));
+  const failed = res.filter(x => !x.ok);
+  if (failed.length) $('selftest-fail').innerHTML = `<div class="callout bad"><strong>Calculation self-test failed</strong> (${failed.map(x => esc(x.name)).join('; ')}). Do not trust the numbers on this page until this is fixed.</div>`;
+  else $('selftest-ok').innerHTML = `<span class="detail">Calculation self-test: ${res.length}/${res.length} checks from tools/tests/test_tools.py pass in this browser.</span>`;
+})();
+</script>
+</body>
+</html>

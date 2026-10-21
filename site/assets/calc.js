@@ -495,7 +495,7 @@
   }
   // First 50% of every payout to the household while the payout bankroll is under $2,000 (D-004).
   function payoutSplit(ledger) {
-    const pays = ledger.filter(r => Number(r.in) > 0).sort((a, b) => (a.date || '') < (b.date || '') ? -1 : 1);
+    const pays = ledger.filter(r => Number(r.in) > 0).sort((a, b) => (a.date || '') < (b.date || '') ? -1 : (a.date || '') > (b.date || '') ? 1 : 0);
     let bankroll = 0, household = 0, afterCap = 0;
     const lines = pays.map(p => {
       const amt = Number(p.in);
