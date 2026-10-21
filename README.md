@@ -36,8 +36,11 @@ Yes, it is possible to earn from prop firms with no trading capital; the mechani
 | [tracking/](tracking/) | Progress tracker, KPIs, money-at-risk ledger |
 | [tools/](tools/) | Scripts: journal statistics, challenge-rule simulator |
 | [research/](research/) | Raw research notes with sources (prop firms, evidence, tooling) |
+| [site/](site/) | Shareable browser tracker: same plan as pages, progress saved in the browser, plain-language toggle, export/import |
 
 ## How to use this repo
+
+**Prefer a browser?** Open [site/index.html](site/index.html). It has the same plan with checkboxes that remember your progress, a plain-language mode, and export/import for sharing with a partner or an AI assistant.
 
 1. Read `docs/00` → `docs/03` in order (about 45 minutes).
 2. Do the Phase 0 checklist in [learning/CURRICULUM.md](learning/CURRICULUM.md).

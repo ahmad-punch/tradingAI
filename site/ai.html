@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en" data-mode="plain">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI and you - tradingAI</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/app.js"></script>
+<style>
+  .wrap { overflow-wrap: break-word; }
+  .toc { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 6px 0 0; padding: 0; list-style: none; }
+  .toc li { max-width: none; }
+  .job h3 { margin-top: 0; }
+  .job .no { color: var(--bad); }
+  .split { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .split .card { margin: 0; }
+  .split h3 { margin-top: 0; }
+  .split ul { padding-left: 1.2em; margin: .4em 0; }
+  pre.prompt { white-space: pre-wrap; word-break: break-word; overflow-x: hidden; }
+  .copyrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0; }
+  .when { display: inline-block; min-width: 5.5em; font-weight: 700; color: var(--accent); }
+  .steps li { margin-bottom: .6em; }
+  @media (max-width: 640px) {
+    table.stack thead { display: none; }
+    table.stack, table.stack tbody, table.stack tr, table.stack td { display: block; width: 100%; }
+    table.stack tr { border: 1px solid var(--line); border-radius: 8px; margin: 8px 0; padding: 6px 10px; background: var(--panel); }
+    table.stack td { border: 0; padding: 3px 0; }
+    table.stack td[data-label]::before { content: attr(data-label); display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<h1>What AI does here, and why it changes the odds for a non-technical person</h1>
+
+<div class="plain">
+  <p>You do not need to be a computer person to use this. You also do not need to be a finance person. You need a helper that is patient, never tired, and never tempted to gamble. That is what the AI is for.</p>
+  <div class="callout warn"><strong>One honest sentence first:</strong> the AI cannot tell you where prices will go next. Nobody's AI can. If anyone sells you one that claims to, walk away.</div>
+</div>
+<div class="detail">
+  <p>Claim, stated precisely: an AI orchestrator (Claude Code or a similar assistant that can read your journal, run scripts, enforce rules, build tools, and explain any term) changes the odds of <em>behaving consistently, measuring honestly and learning faster</em>. It does <strong>not</strong> change the odds that a given market goes up or down. The base rates in the reality check (about 1 in 14 challenge buyers ever paid) still apply; what this changes is the failure modes that sit behind them.</p>
+  <div class="callout warn"><strong>Bottom line:</strong> AI never predicts price, never places a trade for you, and never tells you to place one.</div>
+</div>
+<ul class="toc small">
+  <li><a href="#jobs">Four jobs</a></li><li><a href="#cannot">Can / cannot</a></li><li><a href="#build">What we build</a></li><li><a href="#stack">Tools</a></li><li><a href="#evidence">Evidence</a></li><li><a href="#compare">Vs course + Telegram</a></li><li><a href="#weekly">Weekly routine</a></li><li><a href="#rules">Rules and red flags</a></li><li><a href="#teaching">Teaching others</a></li>
+</ul>
+
+<!-- ================= FOUR JOBS ================= -->
+<h2 id="jobs">The coach who never sleeps</h2>
+
+<div class="plain">
+  <p>Think of it as a coach who never sleeps, never gets excited, and never trades. A coach who has no money on the table and cannot be talked into "just one more". It does four jobs.</p>
+  <div class="grid">
+    <div class="card job"><h3>1. Teacher</h3><p>Ask it what any word means. Ask it again in simpler words. Ask it to quiz you. It will not make you feel silly. Use it with the glossary on the Learning page.</p></div>
+    <div class="card job"><h3>2. Bookkeeper</h3><p>You write down each trade. It reads the list and does the maths: how often you win, what you make on average, where your losses cluster. You never need to learn spreadsheets.</p></div>
+    <div class="card job"><h3>3. Referee</h3><p>Before a trade, it checks your own rules and the firm's limits. "Your stop is missing." "This trade is too big." "You are close to the daily loss line." It can say no. You cannot argue with a checklist at 2am, and that is the point.</p></div>
+    <div class="card job"><h3>4. Builder</h3><p>It writes the small tools for you: the trade-size calculator, the journal statistics, the rule checker. You do not need to code. You ask, you check that it works, you use it.</p></div>
+  </div>
+  <div class="card job">
+    <h3 class="no">The job it does NOT do</h3>
+    <p>The one everyone hopes for: it does not know where the price goes next. It cannot pass the test for you either. Robots that try to do that get accounts closed.</p>
+  </div>
+  <h3>So why does it matter?</h3>
+  <p>The person in the video lost about 15 test accounts by breaking his own rules, often after a bad day. He had no referee. He had no bookkeeper that showed him the pattern. He only turned around when a mentor and public accountability gave him a coach. An AI helper can play much of that role at any hour, for the price of a subscription you may already have.</p>
+  <p>It will not make you a good trader. It makes it <strong>harder to cheat yourself</strong>, and faster to find out, cheaply, whether you can do this at all.</p>
+</div>
+
+<div class="detail">
+  <table class="stack">
+    <thead><tr><th>Job</th><th>What it does here</th><th>Which failure it addresses</th></tr></thead>
+    <tbody>
+      <tr><td data-label="Job"><strong>Teacher</strong></td><td data-label="What">Explains any concept in the glossary or curriculum at any level, quizzes you on firm rules, summarises news-calendar risk for the week.</td><td data-label="Failure">Slow, solitary learning; learning the wrong thing from a paid course.</td></tr>
+      <tr><td data-label="Job"><strong>Bookkeeper</strong></td><td data-label="What">Reads <code>TRADE-LOG.csv</code>: expectancy, win rate, avg R, profit factor, max DD in R, consecutive losses, adherence %, compliant-vs-non-compliant expectancy; clusters losses by session, market, weekday, hold time; drafts the weekly review.</td><td data-label="Failure">Not measuring; unnoticed rule drift; looking at P&amp;L instead of process.</td></tr>
+      <tr><td data-label="Job"><strong>Referee</strong></td><td data-label="What">Computes position size, refuses a trade that breaks the checklist, flags distance-to-breach on daily/max loss, min days, consistency (<code>rule_guard.py</code> + <code>challenge_rules.json</code>).</td><td data-label="Failure">The one that cost the guest about 15 accounts: breaching limits you did not track.</td></tr>
+      <tr><td data-label="Job"><strong>Builder</strong></td><td data-label="What">Generates the replay logger, stats script, data loader, Pine alerts, screeners; catches look-ahead bugs if asked.</td><td data-label="Failure">Tooling cost; no engineer on hand. (Here you are the builder, and the AI speeds you up.)</td></tr>
+    </tbody>
+  </table>
+  <p><strong>What stays unchanged:</strong> the edge. Whether your strategy has positive expectancy is a backtest result you must produce by hand (100 trades, Phase 1 gate), not something an assistant can supply. Pattern recognition is the skill being trained; automating it away leaves nothing to execute.</p>
+  <p><strong>Why an orchestrator rather than a chatbot window:</strong> an assistant with file access reads the actual CSV rather than your summary of it, runs the scripts, and re-checks its own arithmetic. That removes transcription errors and "it sounded right" answers, which matter when the work is bookkeeping and rule checks.</p>
+</div>
+
+<!-- ================= CAN / CANNOT ================= -->
+<h2 id="cannot">What AI can and cannot do</h2>
+<div class="plain">
+  <div class="split">
+    <div class="card">
+      <h3>Good at</h3>
+      <ul>
+        <li>Checking your rules before a trade</li>
+        <li>Reading your journal and doing the sums</li>
+        <li>Writing the weekly review draft</li>
+        <li>Building the small tools</li>
+        <li>Explaining any word, and quizzing you</li>
+        <li>Looking at 4 charts for a setup you already defined, instead of 40</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Not able to</h3>
+      <ul>
+        <li>Predict price</li>
+        <li>Pass the test for you</li>
+        <li>Replace your 100 practice trades. Doing them is how you learn to see</li>
+        <li>Make the odds better by itself</li>
+        <li>Choose your strategy. That comes from testing, not opinion</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="detail">
+  <table class="stack">
+    <thead><tr><th>AI/automation <strong>can</strong> do this well</th><th>AI/automation <strong>cannot</strong> do this</th></tr></thead>
+    <tbody>
+      <tr><td data-label="Can">Enforce rules: compute position size, refuse a trade that breaks the checklist, flag distance-to-breach on daily/max loss</td><td data-label="Cannot">Predict price. LLMs on charts show no durable edge after costs in any credible study; any signal is stale and non-exclusive</td></tr>
+      <tr><td data-label="Can">Journal review: read the CSV, cluster losses by session/market/emotion, write the weekly review draft, spot rule drift</td><td data-label="Cannot">Pass a challenge for you. "AI passing bots" trip hyperactivity, consistency and herd-detection rules and get accounts terminated</td></tr>
+      <tr><td data-label="Can">Backtest tooling: generate the replay logger, the stats script, the Dukascopy data loader; catch look-ahead bugs if asked to</td><td data-label="Cannot">Replace the 100 hand-backtested trades. Pattern recognition is the skill being trained; automating it away leaves you with nothing to execute</td></tr>
+      <tr><td data-label="Can">Curriculum: explain any concept, quiz you on firm rules, summarise news-calendar risk for the week</td><td data-label="Cannot">Make the base rates better</td></tr>
+      <tr><td data-label="Can">Screen D1/H4 charts for setups you <em>already defined</em> so you look at 4 charts, not 40</td><td data-label="Cannot">Choose the strategy. That's a backtest result, not an opinion</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ================= WHAT WE BUILD ================= -->
+<h2 id="build">What we build, in order</h2>
+<div class="plain">
+  <p>Six small tools, built one at a time. Each one is used straight away. Three already exist.</p>
+  <ol>
+    <li><strong>Trade-size calculator.</strong> You say how much you will risk and where your safety exit is. It says how big the trade is. <span class="badge ok">Built</span></li>
+    <li><strong>Journal statistics.</strong> Reads your list of trades and tells you how you are really doing. <span class="badge ok">Built</span> The Journal page on this site also does this.</li>
+    <li><strong>Rule checker.</strong> Holds each firm's rules and tells you how close you are to breaking one. <span class="badge ok">Built</span> The Journal page also has a simple version.</li>
+    <li><strong>Weekly AI review.</strong> The AI reads your week and drafts the review. You edit it. <span class="badge warn">Prompt ready, script planned</span></li>
+    <li><strong>Chart scanner.</strong> Looks at a few markets for the pattern <em>you</em> defined. It never trades. <span class="badge">Planned</span></li>
+    <li><strong>Dashboard.</strong> One screen for several accounts. Only needed much later. <span class="badge">Planned</span></li>
+  </ol>
+  <p class="meta">"Built" means it exists and can be used now. It does not mean it has been proven on real trading yet.</p>
+</div>
+<div class="detail">
+  <table class="stack">
+    <thead><tr><th>#</th><th>Tool</th><th>What it does</th><th>When</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td data-label="#">1</td><td data-label="Tool"><code>tools/position_size.py</code></td><td data-label="What">Risk % + SL distance to lots.</td><td data-label="When">Day 1</td><td data-label="Status"><span class="badge ok">Exists (Python)</span></td></tr>
+      <tr><td data-label="#">2</td><td data-label="Tool"><code>tools/journal_stats.py</code></td><td data-label="What">Reads the CSV: expectancy, win rate, avg R, profit factor, max DD in R, consecutive losses, rule-adherence %, compliant-vs-non-compliant expectancy.</td><td data-label="When">Phase 1</td><td data-label="Status"><span class="badge ok">Exists (Python)</span> <span class="badge ok">JS version on Journal page</span></td></tr>
+      <tr><td data-label="#">3</td><td data-label="Tool"><code>tools/challenge_rules.json</code> + <code>tools/rule_guard.py</code></td><td data-label="What">Firm rules as data; replays a trade history and reports daily/max loss breaches, min days, consistency status and distance to breach.</td><td data-label="When">Phase 2</td><td data-label="Status"><span class="badge ok">Exists (Python)</span> <span class="badge ok">JS guard on Journal page</span></td></tr>
+      <tr><td data-label="#">4</td><td data-label="Tool">AI weekly review</td><td data-label="What">A prompt + script that pipes the week's CSV rows and the previous review into Claude and drafts the review; you edit, you decide.</td><td data-label="When">Phase 2</td><td data-label="Status"><span class="badge warn">Prompt exists (below); script not built</span></td></tr>
+      <tr><td data-label="#">5</td><td data-label="Tool">Setup screener</td><td data-label="What">Python on Dukascopy D1/H4 data flagging the strategy's conditions (EMA bias + pullback zone + H4 trigger). Never auto-trades.</td><td data-label="When">Phase 2-3</td><td data-label="Status"><span class="badge">Planned</span></td></tr>
+      <tr><td data-label="#">6</td><td data-label="Tool">Multi-account dashboard</td><td data-label="What">Only when there is more than one account; also the seed of the product.</td><td data-label="When">Phase 5</td><td data-label="Status"><span class="badge">Planned</span></td></tr>
+    </tbody>
+  </table>
+  <p class="meta">Status reflects files present in <code>/tools</code> and the Journal page of this site at the time of writing. "Exists" means written and usable, not validated against live results.</p>
+</div>
+
+<!-- ================= STACK ================= -->
+<h2 id="stack">The tools around it</h2>
+<div class="plain">
+  <p>Everything is free, or under about $20 a month. Charts: TradingView (free). Practice trading: an MT5 demo account (free). Practice with a firm's real dashboard: free trials. Past price data: free. The journal: this site. The AI: the subscription you may already have. Nothing here needs real trading money.</p>
+</div>
+<div class="detail">
+  <table class="stack">
+    <thead><tr><th>Need</th><th>Tool</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td data-label="Need">Charts, bias, levels</td><td data-label="Tool">TradingView Free (Essential ~$13/mo only if bar replay needed)</td><td data-label="Cost">$0-13</td></tr>
+      <tr><td data-label="Need">Replay backtesting</td><td data-label="Tool">FX Replay free tier, then $15/mo in Phase 1 only; or TradingView replay</td><td data-label="Cost">$0-15</td></tr>
+      <tr><td data-label="Need">Demo execution</td><td data-label="Tool">MT5 demo from any broker serving Pakistan (Exness/Pepperstone reported OK; verify)</td><td data-label="Cost">$0</td></tr>
+      <tr><td data-label="Need">Prop-rule practice</td><td data-label="Tool">FTMO Free Trial, FundedNext 14-day trial</td><td data-label="Cost">$0</td></tr>
+      <tr><td data-label="Need">Historical data</td><td data-label="Tool">Dukascopy tick data via <code>dukascopy-node</code>; HistData M1</td><td data-label="Cost">$0</td></tr>
+      <tr><td data-label="Need">Journal</td><td data-label="Tool"><code>journal/TRADE-LOG.csv</code> + <code>tools/journal_stats.py</code> (and the Journal page here); Tradervue free tier if a UI is wanted</td><td data-label="Cost">$0</td></tr>
+      <tr><td data-label="Need">Rule enforcement</td><td data-label="Tool"><code>tools/rule_guard.py</code> reading MT5 history exports; later a cTrader/MT5 plugin</td><td data-label="Cost">$0</td></tr>
+      <tr><td data-label="Need">AI review</td><td data-label="Tool">Claude/ChatGPT with the CSV and the weekly template; prompt in <code>journal/AI-REVIEW-PROMPT.md</code></td><td data-label="Cost">existing subscription</td></tr>
+      <tr><td data-label="Need">Economic calendar</td><td data-label="Tool">Forex Factory / Investing.com</td><td data-label="Cost">$0</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ================= EVIDENCE ================= -->
+<h2 id="evidence">Does AI predict prices? What the evidence says</h2>
+<div class="plain">
+  <p>Researchers have tried. Some chatbot-based systems looked good on old data. None has been shown to keep working in real life, once trading costs are paid. A system that wins on old data may just be fitted to the past, like learning last year's exam answers.</p>
+  <p>Even if one worked for a while, other people could copy it, and its edge would fade. That is why we use AI for the boring, useful jobs, and not as a crystal ball.</p>
+</div>
+<div class="detail">
+  <p>From <code>research/tooling-and-learning.md</code> section 5. <strong>Realistic, used today:</strong> journal review and weekly summaries from CSV; rule-enforcement scripts/EAs that hard-stop at loss thresholds; code generation for Pine alerts, pandas and backtest scaffolds (verify for look-ahead bugs); news-calendar summarisation; screeners on D1/H4 for setups you already defined. <strong>Hype:</strong> LLMs predicting price (near-martingale at retail horizons; any signal is stale and non-exclusive) and "AI prop-firm passing bots" (they trip hyperactivity, consistency and herd rules).</p>
+  <p><strong>Evidence.</strong> Lopez-Lira &amp; Tang (arXiv 2304.07619) found that ChatGPT headline sentiment correlates with next-day equity returns, in-sample. An LSE sentiment paper reports a Sharpe of 3.05 after costs on US equity news, which does not transfer to FX/gold technicals. TradingAgents (arXiv 2412.20138), a multi-agent LLM framework, beats baselines in backtest, not live. FinGPT is good at sentiment, weak at reasoning, and showed negative returns in the FinMem comparison. Ntale 2026 (arXiv 2607.15414) cites "numerical hallucination, context-window limits, inconsistent sideways-regime performance." <strong>Net:</strong> nothing credible shows LLMs reading charts into a durable FX/gold edge after costs.</p>
+  <p class="meta">Rules that matter if tempted (FTMO forbidden practices): EAs are allowed, but more than 2,000 server requests a day is "hyperactive"; no "AI/ultra-high-speed tools" for unfair advantage; no third party may trade your account; the same purchased EA across many accounts is flagged as herd trading; copying external masters is a termination offence.</p>
+</div>
+
+<!-- ================= COMPARE ================= -->
+<h2 id="compare">Compared with the course + Telegram model</h2>
+<div class="plain">
+  <div class="split">
+    <div class="card">
+      <h3>The course and community</h3>
+      <ul>
+        <li>Costs about $500.</li>
+        <li>Real people, live sessions, a group to belong to. These genuinely help.</li>
+        <li>The business often earns when you buy a test (affiliate links).</li>
+        <li>Tip rooms (signals) are common in this world.</li>
+        <li>A mentor helps when the mentor has time.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>This system</h3>
+      <ul>
+        <li>The lessons are free.</li>
+        <li>No tips, ever. We earn nothing when you buy a test.</li>
+        <li>Progress is measured by numbers, not by feelings.</li>
+        <li>A rule checker, and an AI review every week.</li>
+        <li>Your partner sees your progress through the Export file.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>Being fair:</strong> the course gives you human company and live teaching, and those matter. A website cannot hug you. Our answer is one real person (your wife or brother) who sees your weekly review. Later, if this works for you, a small community of family doing the same thing.
+  </div>
+</div>
+<div class="detail">
+  <table class="stack">
+    <thead><tr><th>Dimension</th><th>Course + community (e.g. $500 + Telegram/Discord)</th><th>This system</th></tr></thead>
+    <tbody>
+      <tr><td data-label="Dimension">Cost to learn</td><td data-label="Course">~$500 course; prop-firm affiliate links typically pay 10-15% of challenge fees</td><td data-label="This system">$0 through Phase 2; free curriculum (Babypips, Grimes, Douglas, Tharp); no affiliate income (D-002)</td></tr>
+      <tr><td data-label="Dimension">Signals</td><td data-label="Course">Signal rooms are common in the model; the guest lost money in a paid group before the course</td><td data-label="This system">None, ever (reality check non-negotiable 1)</td></tr>
+      <tr><td data-label="Dimension">Measuring progress</td><td data-label="Course">Course completion and mentor judgement</td><td data-label="This system">Numeric gates in the roadmap (e.g. 100 backtested trades, expectancy at least +0.3R, adherence at least 95% over 40 forward trades)</td></tr>
+      <tr><td data-label="Dimension">Rule enforcement</td><td data-label="Course">No rule guard; the guest had none (docs/07)</td><td data-label="This system">Rule guard: position sizing, checklist, distance-to-breach on firm limits</td></tr>
+      <tr><td data-label="Dimension">Feedback</td><td data-label="Course">Mentor sessions: valuable, but depend on a person's availability</td><td data-label="This system">AI weekly review of the actual CSV, on demand, plus partner review</td></tr>
+      <tr><td data-label="Dimension">Accountability</td><td data-label="Course">Community and public calls (what the guest credits)</td><td data-label="This system">Accountability partner + weekly export (JSON from this site)</td></tr>
+      <tr><td data-label="Dimension">Human community and live sessions</td><td data-label="Course"><strong>Yes, a real advantage</strong></td><td data-label="This system">Not replaced by software. Mitigation: one named partner; household trainees later (docs/08)</td></tr>
+      <tr><td data-label="Dimension">Honest denominator</td><td data-label="Course">Survivorship stories dominate marketing</td><td data-label="This system">Base rates stated up front (about 7% of buyers ever paid; reality check)</td></tr>
+      <tr><td data-label="Dimension">Incentive</td><td data-label="Course">Revenue rises when you buy; the Trustpilot reviews of one Pakistani provider criticise a partner prop-firm referral</td><td data-label="This system">No commission on challenge purchases; a future product would charge a subscription instead</td></tr>
+    </tbody>
+  </table>
+  <p class="meta">What the guest actually credits for his turnaround is accountability (mentor sessions, public calls, a journal), not secret knowledge. The weekly export is built to provide the accountability part at no cost.</p>
+</div>
+
+<!-- ================= WEEKLY ================= -->
+<h2 id="weekly">How to use an AI assistant each week</h2>
+
+<div class="plain">
+  <p>Three small habits. Together they take about 10 minutes on Monday and 2 minutes on the days you trade.</p>
+  <ol class="steps">
+    <li><span class="when">Monday, 10 min</span> Press <strong>Export</strong> (top of the page). Open your AI assistant. Paste last week's journal rows and last week's review. Then paste the review prompt from the box below, exactly as it is. Read what it says. Pick <em>one</em> thing to change next week.</li>
+    <li><span class="when">Daily, 2 min</span> Before any trade, tell your assistant your answers to the pre-trade checklist (see the Learning page). Ask it to say which answers are "no" or unclear. If any are, you do not trade.</li>
+    <li><span class="when">Monthly</span> Ask the assistant to compare the firm's current rules page with the rules saved in your project. Firms change rules. A rule you did not know about is a rule you will break.</li>
+  </ol>
+</div>
+<div class="detail">
+  <ol class="steps">
+    <li><span class="when">Monday, 10 min</span> Export. Paste the last 7-30 days of <code>journal/TRADE-LOG.csv</code> rows plus the previous week's review, then the review prompt below, verbatim. Reconcile the numbers against <code>tools/journal_stats.py</code> (spot-check one figure; do not trust arithmetic you have not verified). Draft the "one thing" as a process change only.</li>
+    <li><span class="when">Daily, 2 min</span> Give the assistant your checklist answers for the planned trade (bias, location, trigger, SL set, size computed, news checked, correlated exposure) and ask which are "no" or unclear. Any "no" means no trade. The assistant reports on conditions; it does not suggest a trade.</li>
+    <li><span class="when">Monthly</span> Ask it to re-verify the firm's rule page against <code>tools/challenge_rules.json</code> and list any differences (daily loss basis, trailing vs static drawdown, news window, consistency, weekend holding). You click through to the page and confirm yourself; update the JSON only after you have read the rule.</li>
+  </ol>
+</div>
+
+<h3>The review prompt (copy it exactly)</h3>
+<p class="small">Paste the last 7-30 days of <code>journal/TRADE-LOG.csv</code> rows and the previous week's review, then this:</p>
+<pre class="prompt" id="review-prompt">You are reviewing a swing trader's journal. Do not comment on market direction or suggest trades. Using only the rows provided: (1) compute rule-adherence %, expectancy in R, win rate, net R, and max drawdown in R; (2) compare expectancy on rules_followed=Y vs N; (3) find clusters in losses by market, day of week, hour of trigger, or days held; (4) list every row where a checklist field is N and the trade was taken anyway; (5) compare this week with the previous review's "one thing I'll do differently" and say whether it happened; (6) draft the "one thing" for next week as a process change only. Be blunt. Numbers first, then at most 5 sentences of commentary.</pre>
+<div class="copyrow">
+  <button class="btn primary" type="button" id="copy-prompt">Copy the prompt</button>
+  <span class="meta" id="copy-msg" role="status"></span>
+</div>
+<p class="meta small">Source: <code>journal/AI-REVIEW-PROMPT.md</code>. Everything the assistant says is a description of your past behaviour. Any rule change still goes through a written decision.</p>
+
+<h3>This week's AI routine</h3>
+<div class="card" id="routine">
+  <div class="small"><strong id="rt-week"></strong> <span class="meta" id="rt-count"></span></div>
+  <div class="progress" id="rt-bar"><span></span></div>
+  <div id="rt-items">
+    <div class="check"><input type="checkbox" id="rt-1" data-rt="review"><label for="rt-1"><span class="plain">Monday: I pasted last week's rows and got the AI review.</span><span class="detail">Monday: pasted export + previous review, ran the prompt, spot-checked one number.</span></label></div>
+    <div class="check"><input type="checkbox" id="rt-2" data-rt="daily"><label for="rt-2"><span class="plain">On every day I traded, I had the AI check my pre-trade checklist first.</span><span class="detail">Daily: ran the pre-trade checklist past the assistant before each trade this week (or took no trades).</span></label></div>
+    <div class="check"><input type="checkbox" id="rt-3" data-rt="onething"><label for="rt-3"><span class="plain">I picked one thing to do differently and sent my weekly review to my partner.</span><span class="detail">Wrote the "one thing" as a process change and sent the weekly review to the accountability partner.</span></label></div>
+  </div>
+  <p class="meta small" style="margin-bottom:0">This list starts fresh each week (Monday). Stored in this browser under <code>aiRoutine</code>. Complete weeks so far: <span id="rt-streak">0</span>.</p>
+</div>
+
+<!-- ================= RULES + RED FLAGS ================= -->
+<h2 id="rules">Rules for AI in this project, and red flags</h2>
+<div class="plain">
+  <div class="split">
+    <div class="card">
+      <h3>The four rules</h3>
+      <ol>
+        <li><strong>The AI never places a trade and never tells you to.</strong> It may say, "Rules 1 to 3 are met; rule 4 is not."</li>
+        <li><strong>Check its code.</strong> Any tool it writes for testing must be checked so it does not peek at the future. Ask it to show you how it handles dates and times.</li>
+        <li><strong>Its reviews describe the past.</strong> "Your losses cluster on Fridays." Changing a rule still needs a written decision.</li>
+        <li><strong>No AI tip services, no bought trading robots, no copying others.</strong> Firms close accounts for it, and the evidence says it does not work.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Red flags: walk away</h3>
+      <ul>
+        <li>Anyone selling "AI signals" or "AI picks".</li>
+        <li>A robot that "passes the test for you".</li>
+        <li>A trading robot (an "EA") you pay for, especially one thousands of others also use.</li>
+        <li>Anyone who offers to trade your account for you.</li>
+        <li>A group that copies someone else's trades.</li>
+        <li>Any "gem" that promises to double or triple in a day.</li>
+      </ul>
+      <p class="meta">Firms can close your account and keep the fee for these.</p>
+    </div>
+  </div>
+</div>
+<div class="detail">
+  <div class="split">
+    <div class="card">
+      <h3>Rules for using AI (docs/07)</h3>
+      <ul>
+        <li>An AI never places a trade and never tells you to place one. It can say "this chart meets conditions 1-3; condition 4 is not met."</li>
+        <li>Every AI-generated script that touches backtests is checked for look-ahead bias (using data from after the decision point). Ask it to show the timestamp logic.</li>
+        <li>AI review of the journal is <em>descriptive</em> ("your losses cluster on Fridays"); any rule change still goes through a decision record.</li>
+        <li>No "AI signal" products, no EA purchases, no copy trading. Firms terminate for it and the evidence says it doesn't work.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Red-flag list</h3>
+      <ul>
+        <li>AI signal sellers.</li>
+        <li>"AI prop-firm passing bots": they trip hyperactivity (over 2,000 server requests/day on FTMO), consistency and herd-detection rules.</li>
+        <li>Purchased EAs, especially the same one across many accounts (herd trading flag).</li>
+        <li>Third parties trading your account (forbidden).</li>
+        <li>Copying external masters (termination offence).</li>
+        <li>Tools that help evade copy/herd detection breach firm terms of service; do not build or buy them.</li>
+        <li>"Gems" promising 2-3x a day (docs/06, greed row).</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ================= TEACHING ================= -->
+<h2 id="teaching">Teaching others, and the product question</h2>
+
+<div class="plain">
+  <h3>The order matters</h3>
+  <ol>
+    <li><strong>You first.</strong> Pass the practice-account stage. Until then nothing is proven.</li>
+    <li><strong>Then your first real payout.</strong> One real data point.</li>
+    <li><strong>Then your brother and wife.</strong> They start from the beginning on this site, with you as their mentor. Their fees come from their own budget, with the same cap.</li>
+    <li><strong>Only then think about a product,</strong> and only if two of the three of you pass the same practice stage.</li>
+  </ol>
+  <p>Why so strict: teaching something unproven to family is how the course-selling cycle starts. If we teach, we teach the part that worked: accountability and a rule checker.</p>
+  <h3>What is possible, and what is not</h3>
+  <table class="stack">
+    <thead><tr><th>Question</th><th>Short answer</th></tr></thead>
+    <tbody>
+      <tr><td data-label="Question">Can I earn with no money of my own?</td><td data-label="Answer">Yes, through payouts from firms. The odds are low and it takes about a year.</td></tr>
+      <tr><td data-label="Question">Without losing anything?</td><td data-label="Answer">No. Expect to pay fees first. It is free until the first paid test.</td></tr>
+      <tr><td data-label="Question">$1,000 a month?</td><td data-label="Answer">A possible good outcome, perhaps in the second year.</td></tr>
+      <tr><td data-label="Question">$50,000 a month?</td><td data-label="Answer">Not a plan. It would need millions in pretend accounts for years.</td></tr>
+      <tr><td data-label="Question">Teach my brother or wife?</td><td data-label="Answer">Yes, after it works for you. Expect similar odds.</td></tr>
+      <tr><td data-label="Question">Build a product?</td><td data-label="Answer">Maybe: a tool that stops people breaking rules. Not tips, and not a course funnel.</td></tr>
+      <tr><td data-label="Question">Use AI?</td><td data-label="Answer">Yes for checking, reviewing, building and teaching. No for guessing prices.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="detail">
+  <h3>Sequencing (docs/08, non-negotiable)</h3>
+  <ol>
+    <li>You pass the Phase 2 gate on demo. Until then nothing here is validated.</li>
+    <li>You get a first payout: one data point and a full record of what it took.</li>
+    <li>Brother/wife start at Phase 0 using this repo, with you as mentor; same gates; you review their weekly reviews; fees from their own budget with the same cap.</li>
+    <li>Only if two of three household traders pass the Phase 2 gate does the material move to "product".</li>
+  </ol>
+  <p><strong>Teachable:</strong> mechanics, rules, position sizing, the journal, the gates; rule adherence as the KPI; how to read firm rules and spot red flags. <strong>Not teachable:</strong> an edge (each person must backtest and own their numbers), patience (the gates make impatience expensive), whether someone will tolerate losing months. Expect the household pass rate to resemble the industry's unless the rule guard and gates genuinely change behaviour; that is the hypothesis a product would rest on.</p>
+  <p><strong>Product shape (if it ever comes to that):</strong> a behaviour product, not signals. Gap: no tool combines a free honest curriculum with numeric gates, a cross-firm rule engine with distance-to-breach, an enforced pre-trade checklist with AI-written weekly reviews, and South-Asia onboarding. Revenue by subscription, <em>not</em> affiliate commissions on challenge purchases. AI's role there: rule engine, review writer, curriculum tutor, screener; never signals. Decision point at Phase 5 (OD-8).</p>
+  <h3>What's possible vs not (docs/08)</h3>
+  <table class="stack">
+    <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td data-label="Question">Can I earn from trading with no capital?</td><td data-label="Answer">Yes, via prop-firm payouts, at low odds, after ~a year, with capped fee losses.</td></tr>
+      <tr><td data-label="Question">Without losing anything?</td><td data-label="Answer">No. Expect $100-$600 in fees before a payout, possibly with no payout. Free through Phase 2.</td></tr>
+      <tr><td data-label="Question">$1,000/month?</td><td data-label="Answer">Plausible success case at month 14-20 with ~$100k simulated allocation.</td></tr>
+      <tr><td data-label="Question">$50,000/month?</td><td data-label="Answer">Needs ~$4M allocation at 1.5%/month. Multi-year, low-probability, capped by firm scaling rules. Not a plan.</td></tr>
+      <tr><td data-label="Question">Train brother/wife?</td><td data-label="Answer">Yes, after you've validated the process; same gates; expect the same base rates minus whatever the rule guard buys.</td></tr>
+      <tr><td data-label="Question">Build a product?</td><td data-label="Answer">Yes, a behaviour/rule-enforcement product with an honest curriculum; not a signals or course-funnel product. Decide at Phase 5.</td></tr>
+      <tr><td data-label="Question">Involve AI?</td><td data-label="Answer">Yes for enforcement, review, tooling, teaching. No for prediction.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</main>
+
+<script>
+TA.init({page:'ai.html'});
+
+function $(id) { return document.getElementById(id); }
+
+/* ---- copy button (works on file://, where navigator.clipboard may be unavailable) ---- */
+function copyText(text, done) {
+  function fallback() {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta); done(ok);
+  }
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
+  } else fallback();
+}
+$('copy-prompt').addEventListener('click', function () {
+  copyText($('review-prompt').textContent, function (ok) {
+    $('copy-msg').textContent = ok ? 'Copied. Paste it into your assistant after your journal rows.' : 'Could not copy automatically. Select the text in the box and copy it by hand.';
+    setTimeout(function () { $('copy-msg').textContent = ''; }, 5000);
+  });
+});
+
+/* ---- weekly routine, keyed by ISO week; aiRoutine = {'2026-W43': {review:'date', daily:'date', onething:'date'}} ---- */
+function isoWeekKey(d) {
+  var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  var day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  var yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  var wk = Math.ceil(((t - yearStart) / 86400000 + 1) / 7);
+  return t.getUTCFullYear() + '-W' + String(wk).padStart(2, '0');
+}
+function todayISO() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+var WEEK = isoWeekKey(new Date());
+var RT_IDS = ['review', 'daily', 'onething'];
+
+function refreshRoutine() {
+  var all = TA.store.get('aiRoutine', {});
+  var wk = all[WEEK] || {};
+  var done = RT_IDS.filter(function (k) { return wk[k]; }).length;
+  $('rt-week').textContent = 'Week ' + WEEK;
+  $('rt-count').textContent = '(' + done + ' of ' + RT_IDS.length + ' done)';
+  TA.setProgress('rt-bar', Math.round(done / RT_IDS.length * 100));
+  var streak = Object.keys(all).filter(function (k) { return RT_IDS.every(function (id) { return all[k] && all[k][id]; }); }).length;
+  $('rt-streak').textContent = streak;
+}
+document.querySelectorAll('#rt-items input[data-rt]').forEach(function (cb) {
+  var all = TA.store.get('aiRoutine', {});
+  cb.checked = !!(all[WEEK] && all[WEEK][cb.dataset.rt]);
+  cb.closest('.check').classList.toggle('done', cb.checked);
+  cb.addEventListener('change', function () {
+    var a = TA.store.get('aiRoutine', {});
+    a[WEEK] = a[WEEK] || {};
+    if (cb.checked) a[WEEK][cb.dataset.rt] = todayISO(); else delete a[WEEK][cb.dataset.rt];
+    if (!Object.keys(a[WEEK]).length) delete a[WEEK];
+    TA.store.set('aiRoutine', a);
+    cb.closest('.check').classList.toggle('done', cb.checked);
+    refreshRoutine();
+  });
+});
+refreshRoutine();
+</script>
+</body>
+</html>

@@ -19,6 +19,12 @@ A documentation-first project: a zero-capital, gated plan for learning prop-firm
 - Commits: plain, imperative subject lines. **No AI attribution lines or trailers in commits or PRs** (owner's instruction).
 - No deploy config lives here. Do not add Vercel/Netlify/GitHub Pages config without an explicit decision.
 
+## The browser tracker (`site/`)
+- Static HTML/CSS/JS, no build, no external scripts. Shared runtime in `site/assets/app.js` (storage, nav, plain/detail toggle, export/import) and pure calculations in `site/assets/calc.js` (JS port of the Python tools; keep both in sync).
+- Every substantive section has a `.plain` and a `.detail` version.
+- Storage keys are listed in `site/README.md`; don't add keys without updating it.
+- Preview: open `site/index.html` directly (file://) or run `cd site && python3 -m http.server 8787` in a terminal.
+
 ## Tooling
 - Python 3.11+, standard library only unless a decision adds a dependency. Run `python3 tools/journal_stats.py journal/TRADE-LOG.csv`.
 - Tests (when added) live in `tools/tests/`, run with `python3 -m unittest discover tools/tests`.

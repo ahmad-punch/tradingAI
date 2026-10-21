@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decisions - tradingAI</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/app.js"></script>
+<style>
+  .dcard h3 { margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+  .dcard .ctl { display: grid; gap: 10px; grid-template-columns: minmax(140px, 200px) 1fr; margin-top: 10px; align-items: start; }
+  .dcard .ctl textarea { min-height: 56px; }
+  .dcard p { margin: .4em 0; }
+  .dcard .field { margin: .5em 0; }
+  .dcard .field b { display: inline-block; min-width: 6.5em; color: var(--muted); font-weight: 600; }
+  .tablewrap { overflow-x: auto; }
+  table.od td, table.od th { vertical-align: top; }
+  table.od tr.od6 td { background: var(--warn-bg); }
+  table.od textarea { min-height: 44px; }
+  table.od .rescell { text-align: center; white-space: nowrap; }
+  table.od input[type=checkbox] { width: 20px; height: 20px; }
+  @media (max-width: 640px) {
+    .dcard .ctl { grid-template-columns: 1fr; }
+    table.od, table.od tbody, table.od tr, table.od td { display: block; width: 100%; }
+    table.od thead { display: none; }
+    table.od tr { border: 1px solid var(--line); border-radius: 8px; margin-bottom: 12px; background: var(--panel); overflow: hidden; }
+    table.od td { border: 0; border-bottom: 1px dashed var(--line); }
+    table.od td[data-l]::before { content: attr(data-l); display: block; color: var(--muted); font-size: .78rem; }
+    table.od .rescell { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<h1>Decisions</h1>
+<div class="callout">
+  <div class="plain"><strong>Rules are only changed here, in writing, never while a trade is open.</strong> This is how we stop ourselves from changing the plan after a bad night. If a rule feels wrong, write the new decision down, wait a day, then mark it Accepted.</div>
+  <div class="detail"><strong>Rules are only changed here, in writing, never while a trade is open.</strong> Format: ID · date · status (Proposed / Accepted / Superseded by D-xxx) · context · decision · consequences. New decisions append at the bottom. A rule is not in force until its decision is <strong>Accepted</strong> by the owner. Status and notes are saved in <code>decisions</code>; open questions in <code>openDecisions</code>.</div>
+</div>
+
+<h2>Decision log</h2>
+<p class="meta" id="decSummary"></p>
+<div id="decList"></div>
+
+<h2>Propose a new decision</h2>
+<form id="newForm" class="card" autocomplete="off">
+  <div class="plain"><p>Want to change a rule, or add one? Write it here first. It starts as "Proposed" and is not in force until you mark it Accepted.</p></div>
+  <div class="detail"><p class="small">Appends D-011+ to <code>decisions</code> with status Proposed. Use Superseded on the old decision and cite the new one in its note.</p></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+    <label class="f">ID<input type="text" id="nd-id" readonly></label>
+    <label class="f">Title<input type="text" id="nd-title" placeholder="Short name of the decision"></label>
+  </div>
+  <label class="f" style="margin-top:10px">Context (what happened or what do we know?)<textarea id="nd-ctx"></textarea></label>
+  <label class="f" style="margin-top:10px">Decision (what exactly changes?)<textarea id="nd-dec"></textarea></label>
+  <p><button class="btn primary" type="submit">Add as Proposed</button> <span class="meta" id="nd-msg"></span></p>
+</form>
+
+<h2>Open decisions</h2>
+<div class="plain"><p>These are questions we have not answered yet. Each has a "decide by" point. Tick the box when it is settled, and write the answer down.</p></div>
+<div class="detail"><p>Things not yet decided, what would decide them, and when they must be decided by.</p></div>
+
+<div class="callout warn" id="od6note">
+  <div class="plain">
+    <strong>OD-6: is it legal and tax-safe for you to do this from Pakistan? Settle this before you pay anything.</strong>
+    <p>In May 2022 the State Bank of Pakistan told banks to block payments to overseas forex-trading sites, and said residents trading forex abroad breaks the foreign-exchange law. Prop-firm fees are a different thing, because you pay a fee for a pretend (simulated) test and no trading money leaves the country, and these firms do accept Pakistani clients. But it is a grey area. Pakistani cards often fail at their checkouts, and the usual workaround (paying in USDT through peer-to-peer sellers) has its own legal risk. Payouts are also foreign income, so tax matters too.</p>
+    <p><strong>What to do:</strong> one hour with a Pakistani lawyer or accountant, before the first paid fee, and a written summary. Keep every payout invoice.</p>
+  </div>
+  <div class="detail">
+    <strong>OD-6: legal/tax position in Pakistan. Decide before any paid fee.</strong>
+    <p>A May 2022 State Bank of Pakistan circular directed banks to block payments to offshore forex trading platforms and characterised resident forex trading abroad as a violation of the Foreign Exchange Regulation Act. Prop-firm fees are a different thing (a fee for a simulated service, no trading capital sent abroad), and the firms in question accept Pakistani clients, but it is a grey area, PKR cards usually fail at these checkouts, and the common workaround (USDT via peer-to-peer) has its own compliance exposure.</p>
+    <p>Tax: payouts are foreign-source income. Keep every payout invoice. Ask an accountant how prop-firm income is treated for a Pakistan resident before the first payout, not after. Resolution: a one-hour consultation with a lawyer or accountant familiar with FERA/SBP circulars and foreign-source income; written summary in research/legal.md. This also feeds the D-006 gate.</p>
+  </div>
+</div>
+
+<div class="tablewrap"><table class="od" id="odTable">
+  <thead><tr><th>ID</th><th>Question</th><th>What decides it</th><th>Decide by</th><th>Resolved</th><th>Answer</th></tr></thead>
+  <tbody id="odBody"></tbody>
+</table></div>
+
+<p class="small muted">Not financial advice. No one involved is a licensed advisor.</p>
+</main>
+
+<script>
+TA.init({page:'decisions.html'});
+
+(function () {
+  var D = [
+    { id: 'D-001', date: '2026-10-21', title: 'Why we\'re doing this and when we stop',
+      ctx: 'A friend\'s success story + a Sarmaya "Learn to Earn" video prompted the question "can I earn from prop-firm trading with no capital?" Research (research/evidence.md) shows ~7% of challenge buyers are ever paid and 1-3% repeatedly.',
+      dec: 'Treat this as a bounded experiment with numeric gates (docs/03) and a stop rule (docs/05), not as a career change. Owner writes a personal "why" and "stop" statement here before Phase 0 ends (below).',
+      con: 'Every later decision references the gates. Stopping is a success condition of the experiment, not a failure.',
+      plain: 'Why we are doing this and when we stop. We treat it as a small, capped experiment with numbered checkpoints, not a career change. You write your own reason and your own "I stop if" line below, now, while you are calm. Stopping is a fair result, not a failure.', whystop: true },
+    { id: 'D-002', date: '2026-10-21', title: 'Learn on free material first; no paid course by default',
+      ctx: 'The video is an advertisement for a $500 course. The guest credits the community and mentor sessions, not the content, for his turnaround; equivalent content is free (Babypips, Grimes, Douglas, Tharp).',
+      dec: 'Phase 0-1 use only free material (learning/CURRICULUM.md). A paid course can be reconsidered after Phase 1 via a new decision that names what the free material failed to provide.',
+      con: 'Saves $500; forces us to build our own accountability (weekly review shared with a partner) instead of buying it.',
+      plain: 'Learn from free material first. The video is an advert for a $500 course, and the same lessons are free. After Phase 1 we may reconsider, but only by writing down what the free material could not give us. We build our own accountability with a weekly review shared with a partner.' },
+    { id: 'D-003', date: '2026-10-21', title: 'Swing trading, one rule-based strategy, nothing below H1',
+      ctx: 'Prop-firm rules (daily loss, consistency, news) punish high-frequency trading; the guest blew 15 accounts scalping and passed 3 of 5 swinging; the host\'s standing advice is swing + 3%/month. A rule-based strategy is the only kind that can be backtested, measured for adherence, taught, and guarded by a script.',
+      dec: 'Strategy v1 is the D1/H4 trend-pullback template in docs/04, frozen only after the Phase 1 gate (D-005). No scalping, no discretionary entries, no indicators beyond EMA/ATR in v1.',
+      con: 'Slower feedback loop (8-15 trades/month). Fewer chances to overtrade. Gold is half-risk until proven.',
+      plain: 'One simple style only: slow "swing" trading on daily and 4-hour charts, nothing faster than 1 hour. No scalping, no gut-feel trades, no extra gadgets on the chart. It is slower, but there are fewer chances to overtrade, and clear rules can be tested, taught and checked by a tool.' },
+    { id: 'D-004', date: '2026-10-21', title: 'Loss budget: $600 in year one, separate envelope, no top-ups',
+      ctx: 'Industry data: average $800 spent per account lifecycle, $4,300 average among repeat buyers. The failure mode is escalation. The guest spent ~$3,500-4,000 before consistent payouts.',
+      dec: 'Maximum $600 on challenge fees in the first 12 months from the first paid fee. Funded from a named envelope, never topped up mid-year from salary. Maximum two paid attempts inside that budget. First 50% of any payout goes to the household until a $2,000 trading bankroll exists.',
+      con: 'Could mean stopping after two failed attempts even if "close". That is the design.',
+      plain: 'The most we may spend on attempt fees in year one is $600, from a separate budget envelope that is never topped up from salary. At most two paid attempts. Half of any payout goes to the household until there is a $2,000 bankroll. This might mean stopping when it feels "so close". That is on purpose.' },
+    { id: 'D-005', date: '(pending Phase 1)', title: 'Strategy v1 frozen',
+      body: 'Filled in when the Phase 1 gate is met: backtest sample size, expectancy, max DD, the exact frozen rules (copy from docs/04 at the time), and the second-reader agreement test result.',
+      plain: 'Filled in when you pass Phase 1: how many test trades, the results, and the exact rules, locked in writing.' },
+    { id: 'D-006', date: '(pending Phase 2)', title: 'Go for first paid challenge',
+      body: 'Filled in when the Phase 2 gate is met: firm, account type and size, fee, payment rail used, the 3-month demo stats that justify it, and confirmation that OD-6 (legal check) is closed.',
+      plain: 'Filled in when you pass Phase 2: which firm, which size, how much, how you pay, the 3 months of practice results that justify it, and a note that the legal check (OD-6) is done.' },
+    { id: 'D-007', date: '2026-10-21', title: 'No real-money brokerage account, ever, in this plan',
+      ctx: 'SBP 2022 circular treats resident offshore forex trading as a FERA violation; the plan doesn\'t need it; the base rates for retail CFD accounts are 70-90% losers.',
+      dec: 'The only money that leaves the house is prop-firm fees within D-004. No broker deposits, no crypto trading accounts for this project.',
+      con: 'Removes the single largest way to lose real money. Also removes any temptation to "just test with $100".',
+      plain: 'No real-money trading account, ever, in this plan. The only money that leaves the house is attempt fees inside the budget. That removes the biggest way to lose real money, and the temptation to "just try $100".' },
+    { id: 'D-008', date: '2026-10-21', title: 'Firm selection criteria and diversification',
+      ctx: '~100 firms closed in 2024-25; payouts depend on firm solvency.',
+      dec: 'Only firms that (a) accept Pakistan on an official page, (b) have been operating 3+ years, (c) have independently tracked payouts, (d) have static drawdown and no consistency rule on the chosen account type, (e) allow weekend holding on the chosen account type. Never more than 40% of total allocation at one firm once scaling. Primary candidate: FTMO Swing 2-step; backup: The5ers High Stakes; third: FundedNext. Final pick in OD-1 after re-verifying rules at purchase time.',
+      con: 'We pay more than the cheapest firms. Acceptable.',
+      plain: 'How we pick a firm: it officially accepts Pakistan, has been around 3+ years, has payouts tracked by outsiders, uses a fixed (not moving) loss limit, has no "one big day" rule on our account type, and lets us hold trades over the weekend. Once we grow, never more than 40% with one firm. We will pay more than the cheapest option. That is fine.' },
+    { id: 'D-009', date: '2026-10-21', title: 'AI is for enforcement, review and tooling; never for prediction or signals',
+      ctx: 'No credible evidence of LLM chart-reading edge after costs; firms terminate accounts for EA herd/copy trading; the household wants to involve AI.',
+      dec: 'Build tools/rule_guard.py, journal stats, AI weekly review, screener. No auto-trading, no AI signals, no EAs bought or sold.',
+      con: 'The product idea (docs/08) is a behaviour product, not a signal product.',
+      plain: 'AI helps us keep to the rules, review our week and build tools. It does not pick trades. No auto-trading, no AI "signals", no robots bought or sold.' },
+    { id: 'D-010', date: '(pending Phase 4)', title: 'Scale or hold',
+      body: 'Filled in after two consecutive payouts.',
+      plain: 'Filled in after your second payout in a row: do we grow, or hold steady?' }
+  ];
+
+  var OD = [
+    { id: 'OD-1', q: 'Which firm/account for the first paid challenge (FTMO Swing 2-step 25k vs 50k vs The5ers High Stakes)?', d: 'Re-verify rules + Pakistan acceptance in writing from support; fee vs budget (D-004); demo max-DD margin vs the firm\'s limit', by: 'End of Phase 2',
+      qp: 'Which company, and which size of test, do we pay for first?', dp: 'Check their rules again, get written confirmation that they accept Pakistani clients, make sure the fee fits the $600, and check our practice dips are well inside their loss limits.' },
+    { id: 'OD-2', q: 'Entry style in Strategy v1: enter at H4 close, or limit at 50% of trigger candle?', d: 'Backtest both on the same 100 setups; pick the higher expectancy with lower MAE; freeze in D-005', by: 'Phase 1',
+      qp: 'Do we jump in the moment a signal appears, or wait for a slightly better price?', dp: 'Test both on the same 100 old setups. Pick the one that earns more per trade with smaller worst dips. Lock it in D-005.' },
+    { id: 'OD-3', q: 'Breakeven rule: move SL to entry at +1.5R, or leave it?', d: 'Same backtest, both variants', by: 'Phase 1',
+      qp: 'Once a trade is winning, do we move the safety stop up to our entry price, or leave it alone?', dp: 'Test both ways on the same old trades.' },
+    { id: 'OD-4', q: 'Include an index (US500/NAS100) in v1 or forex + gold only?', d: 'Backtest expectancy on the index ≥ the forex average; else exclude', by: 'Phase 1',
+      qp: 'Do we also trade a stock index, or only currencies and gold?', dp: 'Test the index. Include it only if it does at least as well as the currencies.' },
+    { id: 'OD-5', q: 'Paid replay tool (FX Replay $15/mo) or TradingView Essential (~$13/mo) or free-only for the backtest?', d: 'Try free tiers for one week; pay only if the 100-trade backtest is materially slower without', by: 'Week 3',
+      qp: 'Do we pay about $13 to $15 a month for a chart-replay tool, or stay free?', dp: 'Try the free versions for a week. Pay only if the 100-trade test is much slower without it.' },
+    { id: 'OD-6', q: 'Legal/tax position in Pakistan for paying prop-firm fees (USDT) and receiving payouts.', d: 'One-hour consultation with a Pakistani lawyer or accountant familiar with FERA/SBP circulars and foreign-source income; written summary in research/legal.md', by: 'Before any paid fee',
+      qp: 'Is it legal and tax-safe for us to pay these fees and receive the payouts from Pakistan?', dp: 'One hour with a Pakistani lawyer or accountant, and a written summary. See the yellow box above.' },
+    { id: 'OD-7', q: 'Who is the accountability partner for the weekly review (spouse, brother, friend)?', d: 'Owner\'s choice; must be someone who\'ll read it every week', by: 'Week 2',
+      qp: 'Who reads your weekly review every week and keeps you honest?', dp: 'Your choice. It must be someone who will really read it every week.' },
+    { id: 'OD-8', q: 'Does the "product" become a real project?', d: 'Two of three household traders pass the Phase 2 gate; owner has ≥2 payouts; a 10-person pilot wants the rule-guard', by: 'Phase 5',
+      qp: 'Do we turn this into a real product for other people?', dp: 'Only if two of the three household traders pass the Phase 2 gate, you have at least 2 payouts, and a pilot of 10 people wants the rule-checker.' },
+    { id: 'OD-9', q: 'Which demo broker for Phase 2 (Exness, Pepperstone, other)? Must: serve Pakistan, MT5, spreads similar to FTMO\'s, exportable history', d: 'Open two demos, compare spreads on EUR/USD and XAU/USD for a week', by: 'Week 8',
+      qp: 'Which company hosts the free practice account?', dp: 'Open two practice accounts and compare trading costs (spreads) on EUR/USD and gold for a week. It must serve Pakistan, use MT5 and let you export your history.' },
+    { id: 'OD-10', q: 'Time budget: fixed 8-10 h/week? Which hours?', d: 'Owner\'s calendar; must not touch work hours; chart checks at fixed times (e.g. 07:30 and 21:30 PKT)', by: 'Week 1',
+      qp: 'How many hours a week, and at what times of day?', dp: 'Look at your calendar. It must not touch work hours. Check charts at fixed times (for example 07:30 and 21:30 Pakistan time).' },
+    { id: 'OD-11', q: 'Should the owner\'s wife/brother shadow Phase 0 now (reading only), or wait for validation?', d: 'Cost is ~zero if reading only; risk is premature enthusiasm. Default: wait until Phase 2 gate', by: 'Phase 2',
+      qp: 'Should your wife or brother start reading now, or wait?', dp: 'Reading costs almost nothing, but it can cause too much excitement too early. Default: wait until you pass the Phase 2 gate.' }
+  ];
+
+  var esc = TA.esc;
+  function today() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function decs() { return TA.store.get('decisions', {}) || {}; }
+  function setDec(id, patch) { var all = decs(); all[id] = Object.assign({}, all[id] || {}, patch); TA.store.set('decisions', all); return all[id]; }
+  function badgeCls(st) { return st === 'Accepted' ? 'badge ok' : st === 'Superseded' ? 'badge bad' : 'badge warn'; }
+
+  function nextId() {
+    var max = 10;
+    Object.keys(decs()).forEach(function (k) { var m = /^D-(\d+)$/.exec(k); if (m && +m[1] > max) max = +m[1]; });
+    return 'D-' + String(max + 1).padStart(3, '0');
+  }
+
+  function cardHtml(d, st) {
+    var s = st || {}, status = s.status || 'Proposed', note = s.note || '';
+    var h = '<div class="card dcard" id="card-' + d.id + '"><h3><span>' + d.id + ' &middot; ' + esc(d.title) + '</span> <span class="' + badgeCls(status) + '" data-badge="' + d.id + '">' + esc(status) + '</span></h3>' +
+      '<div class="meta">' + esc(d.date) + (s.date ? ' &middot; status set ' + esc(s.date) : '') + (d.custom ? ' &middot; added by you' : '') + '</div>';
+    if (d.custom) {
+      h += '<div class="field"><b>Context</b>' + esc(d.ctx) + '</div><div class="field"><b>Decision</b>' + esc(d.dec) + '</div>';
+    } else {
+      h += '<div class="plain"><p>' + esc(d.plain) + '</p></div><div class="detail">';
+      if (d.body) h += '<p>' + esc(d.body) + '</p>';
+      else h += '<div class="field"><b>Context</b>' + esc(d.ctx) + '</div><div class="field"><b>Decision</b>' + esc(d.dec) + '</div><div class="field"><b>Consequences</b>' + esc(d.con) + '</div>';
+      h += '</div>';
+    }
+    if (d.whystop) {
+      var p = TA.store.get('profile', null) || {};
+      h += '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">' +
+        '<label class="f">Why: <span class="plain">why am I doing this?</span><textarea id="why" placeholder="Why am I doing this?">' + esc(p.why) + '</textarea></label>' +
+        '<label class="f">I stop if: <span class="plain">be specific, with numbers</span><textarea id="stop" placeholder="I stop if...">' + esc(p.stop) + '</textarea></label></div>' +
+        '<p class="meta">These two boxes are saved to your profile and shown on the Start page.</p>';
+    }
+    h += '<div class="ctl"><label class="f">Status<select data-did="' + d.id + '" data-f="status">' +
+      ['Proposed', 'Accepted', 'Superseded'].map(function (o) { return '<option' + (o === status ? ' selected' : '') + '>' + o + '</option>'; }).join('') +
+      '</select></label><label class="f">Note (why you accepted it, or what replaced it)<textarea data-did="' + d.id + '" data-f="note">' + esc(note) + '</textarea></label></div></div>';
+    return h;
+  }
+
+  function renderDecisions() {
+    var all = decs(), h = '', accepted = 0, total = 0;
+    D.forEach(function (d) { h += cardHtml(d, all[d.id]); total++; if ((all[d.id] || {}).status === 'Accepted') accepted++; });
+    Object.keys(all).filter(function (k) { return /^D-\d+$/.test(k) && all[k] && all[k].custom; })
+      .sort(function (a, b) { return +a.slice(2) - +b.slice(2); })
+      .forEach(function (k) {
+        var c = all[k]; total++; if (c.status === 'Accepted') accepted++;
+        h += cardHtml({ id: k, date: c.created || c.date || '', title: c.title || '(untitled)', ctx: c.context || '', dec: c.decision || '', custom: true }, c);
+      });
+    document.getElementById('decList').innerHTML = h;
+    document.getElementById('decSummary').textContent = accepted + ' of ' + total + ' accepted. A rule is only in force once it is Accepted.';
+    document.getElementById('nd-id').value = nextId();
+  }
+
+  /* delegated persistence: no re-render, so typing never loses focus */
+  document.getElementById('decList').addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.dataset && t.dataset.f === 'status') {
+      setDec(t.dataset.did, { status: t.value, date: today() });
+      var b = document.querySelector('[data-badge="' + t.dataset.did + '"]');
+      if (b) { b.className = badgeCls(t.value); b.textContent = t.value; }
+      refreshSummary();
+    }
+  });
+  document.getElementById('decList').addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.dataset && t.dataset.f === 'note') setDec(t.dataset.did, { note: t.value });
+    if (t.id === 'why' || t.id === 'stop') {
+      var p = Object.assign({}, TA.store.get('profile', null) || {});
+      p[t.id] = t.value; TA.store.set('profile', p);
+    }
+  });
+  function refreshSummary() {
+    var all = decs(), total = D.length, acc = 0;
+    D.forEach(function (d) { if ((all[d.id] || {}).status === 'Accepted') acc++; });
+    Object.keys(all).forEach(function (k) { if (/^D-\d+$/.test(k) && all[k] && all[k].custom) { total++; if (all[k].status === 'Accepted') acc++; } });
+    document.getElementById('decSummary').textContent = acc + ' of ' + total + ' accepted. A rule is only in force once it is Accepted.';
+  }
+
+  document.getElementById('newForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var title = document.getElementById('nd-title').value.trim(), ctx = document.getElementById('nd-ctx').value.trim(), dec = document.getElementById('nd-dec').value.trim();
+    var msg = document.getElementById('nd-msg');
+    if (!title || !dec) { msg.textContent = 'Please give it a title and say what the decision is.'; return; }
+    var id = nextId();
+    setDec(id, { custom: true, title: title, context: ctx, decision: dec, status: 'Proposed', note: '', created: today(), date: today() });
+    document.getElementById('nd-title').value = ''; document.getElementById('nd-ctx').value = ''; document.getElementById('nd-dec').value = '';
+    msg.textContent = 'Added ' + id + '.';
+    renderDecisions();
+  });
+
+  /* open decisions */
+  function odState() { return TA.store.get('openDecisions', {}) || {}; }
+  function setOd(id, patch) { var s = odState(); s[id] = Object.assign({}, s[id] || {}, patch); TA.store.set('openDecisions', s); }
+  function renderOD() {
+    var s = odState(), h = '';
+    OD.forEach(function (o) {
+      var st = s[o.id] || {};
+      h += '<tr' + (o.id === 'OD-6' ? ' class="od6"' : '') + '>' +
+        '<td data-l="ID"><strong>' + o.id + '</strong></td>' +
+        '<td data-l="Question"><span class="plain">' + esc(o.qp) + '</span><span class="detail">' + esc(o.q) + '</span></td>' +
+        '<td data-l="What decides it"><span class="plain">' + esc(o.dp) + '</span><span class="detail">' + esc(o.d) + '</span></td>' +
+        '<td data-l="Decide by">' + esc(o.by) + '</td>' +
+        '<td class="rescell" data-l="Resolved"><label><input type="checkbox" data-od="' + o.id + '" data-f="resolved"' + (st.resolved ? ' checked' : '') + ' aria-label="Resolved ' + o.id + '"> ' + (st.date && st.resolved ? '<span class="meta">' + esc(st.date) + '</span>' : '') + '</label></td>' +
+        '<td data-l="Answer"><textarea data-od="' + o.id + '" data-f="answer" aria-label="Answer for ' + o.id + '">' + esc(st.answer || '') + '</textarea></td></tr>';
+    });
+    document.getElementById('odBody').innerHTML = h;
+  }
+  document.getElementById('odBody').addEventListener('change', function (e) {
+    var t = e.target; if (t.dataset && t.dataset.od && t.dataset.f === 'resolved') {
+      setOd(t.dataset.od, { resolved: t.checked, date: t.checked ? today() : '' });
+      var lab = t.parentNode, m = lab.querySelector('.meta');
+      if (m) m.remove();
+      if (t.checked) lab.insertAdjacentHTML('beforeend', '<span class="meta">' + today() + '</span>');
+    }
+  });
+  document.getElementById('odBody').addEventListener('input', function (e) {
+    var t = e.target; if (t.dataset && t.dataset.od && t.dataset.f === 'answer') setOd(t.dataset.od, { answer: t.value });
+  });
+
+  renderDecisions();
+  renderOD();
+})();
+</script>
+</body>
+</html>

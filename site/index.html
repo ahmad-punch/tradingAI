@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Start here - tradingAI</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/app.js"></script>
+<style>
+  .stat .num { overflow-wrap: anywhere; }
+  .stat .sub { color: var(--muted); font-size: .78rem; margin-top: 2px; }
+  .linkgrid a.card { display: block; text-decoration: none; color: var(--ink); margin: 0; }
+  .linkgrid a.card:hover { border-color: var(--accent); }
+  .linkgrid .t { font-weight: 700; color: var(--accent); }
+  .tablewrap { overflow-x: auto; }
+  .quote { border-left: 3px solid var(--line); padding-left: 10px; margin: 6px 0; font-style: italic; }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<h1>Can you earn from prop-firm trading with no money of your own?</h1>
+<p class="meta">The honest answer, and a place to track whether it is working for <em>you</em>.</p>
+
+<div class="card">
+  <div class="plain">
+    <p><strong>Short answer: maybe, but it is slow, it costs a little money, and most people do not make it.</strong></p>
+    <p>Think of it like an exam you pay to sit. A trading company charges you a fee to take a test on a pretend (simulated) trading account. If you pass without breaking their loss rules, they let you trade a bigger pretend account and pay you a share of the pretend profits in real money. You never put in trading money. But you do pay for every attempt, and most people need several attempts.</p>
+    <p>The person in the video lost about $3,000, paid $500 for a course, and failed about 15 attempts over three years before he started getting paid. Most people who try this never get paid at all.</p>
+    <p>A fair target is a first practice-account win after 6 to 12 months, a first payout after 9 to 15 months, and maybe $1,000 to $3,000 a month by month 18 to 24, but only if your practice results prove you are ready. We cap the money we can lose at $600 in the first year, and every step has a go / no-go check.</p>
+  </div>
+  <div class="detail">
+    <p>Yes, it is possible to earn from prop firms with no trading capital; the mechanism is real and payouts are real for the small minority who pass and stay disciplined. No, it cannot be done "without losing anything": challenge fees are the cost of attempts, and the person in the video lost roughly $3,000, a $500 course fee and ~15 failed challenges over three years before his payouts started.</p>
+    <p>The base rate for self-taught traders reaching consistent profitability is low (single-digit percent), the timeline is measured in years not months, and the $50,000/month ambition requires managing several million dollars of simulated capital at ~1%/month, which only a handful of people on any firm do.</p>
+    <p>The realistic, defensible target is: <strong>first funded account in 6-12 months, first payout in 9-15 months, $1,000-3,000/month by month 18-24 if (and only if) the demo results justify it.</strong> Every step has a go/no-go gate so the total cash at risk stays capped (year-1 loss budget proposed at $600, decision D-004; see the <a href="decisions.html">Decisions</a> page).</p>
+  </div>
+</div>
+
+<div class="callout warn">
+  <span class="plain"><strong>This is not financial advice.</strong> Nobody who wrote or uses this site is a licensed adviser. Never trade money you cannot afford to lose.</span>
+  <span class="detail"><strong>Not financial advice.</strong> This is an educational plan written with an AI assistant. No one involved is a licensed financial advisor. Trading leveraged products loses money for the large majority of people who try it.</span>
+</div>
+
+<h2>Where you are</h2>
+<div class="plain"><p>This is your progress at a glance. It fills in by itself as you tick boxes and add entries on the other pages.</p></div>
+<div class="detail"><p class="small">Computed live from this browser's storage: <code>gates</code>, <code>curriculum</code>, <code>learninglog</code>, <code>trades</code>, <code>ledger</code>, <code>decisions</code>, <code>profile</code>.</p></div>
+
+<div id="setupBox"></div>
+<div id="profileLine"></div>
+<div class="grid" id="dash"></div>
+
+<h2>The odds, honestly</h2>
+<div class="plain">
+  <div class="card">
+    <p>Out of 100 people who pay for the exam, about 7 ever get paid even once, and only 1 to 3 get paid regularly. When someone does get paid, the typical payout is about $1,000, which is not much more than a few attempts cost. The average buyer spends around $800 and gets nothing back.</p>
+    <p>The star in the video is the far end of that line. We only hear from the winners; the many who paid and quietly quit do not make videos.</p>
+    <p>That is why this plan practises on a free pretend account first, and only pays for an attempt once the practice results show we can pass.</p>
+  </div>
+</div>
+<div class="detail">
+  <p>Every number is from <code>research/evidence.md</code>. Firm-reported and vendor-reported figures are unaudited; the academic ones are not.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Population</th><th>Finding</th><th>Source type</th></tr></thead>
+    <tbody>
+    <tr><td>Retail CFD accounts (EU/UK/AU brokers, trailing 12 months)</td><td>68-82% lose money; averages -&pound;2,200 to -&euro;6,900 per losing client</td><td>Regulator-mandated disclosures</td></tr>
+    <tr><td>Day traders, Taiwan 1992-2006 (every trader on the exchange)</td><td>~97% lose in a given period; under 1-3% are predictably profitable; no learning on average, only losers quitting</td><td>Academic</td></tr>
+    <tr><td>Day traders, Brazil 2013-2015 who persisted 300+ days</td><td>97% lost; 1.1% earned more than minimum wage; 0.5% more than a bank teller</td><td>Academic</td></tr>
+    <tr><td>Retail FX, French regulator 2009-2012</td><td>89% lost; median loss ~&euro;1,800</td><td>Regulator</td></tr>
+    <tr><td>Prop-firm challenge buyers, 300,000 accounts across 10 firms (2024)</td><td>14% pass a challenge; 45% of funded ever get a payout; <strong>7% of all buyers ever paid</strong>; average spend ~$800 per account over ~3 attempts</td><td>Vendor to prop firms</td></tr>
+    <tr><td>The Funded Trader (own data, 2025)</td><td>1 in 20 pass; 1-2% of all clients ever paid</td><td>Firm</td></tr>
+    <tr><td>Topstep (futures, 2025)</td><td>16.8% of attempts pass; 0.71% reach a real-capital account</td><td>Firm</td></tr>
+    <tr><td>Industry payouts (independent tracker, 30 days)</td><td>median payout $1,092; 78.6% of payouts under $2,000</td><td>Independent tracker</td></tr>
+    <tr><td>Repeat challenge buyers (survey of 459)</td><td>average $4,300 spent across 2-5 firms; ~40% ever profitable</td><td>Self-selected poll</td></tr>
+    </tbody>
+  </table></div>
+  <p>Reading across: roughly <strong>1 in 14 buyers is ever paid, roughly 1 in 50 is paid repeatedly, and the typical payout is about a thousand dollars.</strong> FTMO's own co-founder: "nine out of ten people won't succeed." The guest's ~$8k/month is a far-right-tail outcome; the typical outcome of someone who watched that video and bought a challenge is ~$800 spent and nothing back.</p>
+  <p><strong>Time to competence:</strong> no rigorous data. Practitioner folklore says 2-5 years; the academic data says persistence alone does not produce learning. The one strong predictor of future profit in the Taiwan data is a <em>documented</em> history of net profitability, which is exactly what the demo-phase gate demands before any fee is paid.</p>
+  <p><strong>Return expectations for the competent:</strong> 1-3% a month on simulated capital with losing months. FTMO treats ~2.5%/month sustained over four months as the <em>elite</em> threshold for scaling.</p>
+</div>
+<div class="callout bad">
+  <span class="plain"><strong>$50,000 a month is not a plan.</strong> It would need several million dollars of pretend account, for years, with almost no one managing it. Treat it as a daydream, not a target.</span>
+  <span class="detail"><strong>$50k/month is a thought experiment, not a plan:</strong> at 1.5%/month it needs ~$4M of simulated allocation across firms at an 80% split; scaling caps and breach risk make that a 4-6 year project with a tiny probability.</span>
+</div>
+
+<h2>What this site is, and how to use it</h2>
+<div class="plain">
+  <div class="card">
+    <ul>
+      <li>It is a checklist and notebook for this plan. You tick boxes, write down trades and money, and it shows whether you are really ready for the next step.</li>
+      <li><strong>Your progress lives in this one browser</strong> on this one device. Nothing is sent anywhere.</li>
+      <li>To keep a backup, or move to a phone or laptop, press <strong>Export</strong> (top right). It downloads a small file. On the other device, press <strong>Import</strong> and choose that file.</li>
+      <li>To let a mentor or family member look over your shoulder, send them the exported file. They press Import and see exactly what you see.</li>
+      <li>You can share this whole folder with anyone. It holds no personal data until someone types in their own.</li>
+      <li>Use the <strong>Plain / Detailed</strong> switch at the top to read the short version or the full version with all the numbers.</li>
+    </ul>
+  </div>
+</div>
+<div class="detail">
+  <div class="card">
+    <ul>
+      <li>Static HTML + one CSS file + one JS file. No build step, no network calls, works from <code>file://</code>.</li>
+      <li>All state is in <code>localStorage</code> under a single key (<code>tradingai.v1</code>): <code>profile</code>, <code>gates</code>, <code>curriculum</code>, <code>learninglog</code>, <code>trades</code>, <code>backtest</code>, <code>ledger</code>, <code>decisions</code>, <code>openDecisions</code>. It is per browser and per device.</li>
+      <li><strong>Export</strong> downloads <code>tradingai-progress-YYYY-MM-DD.json</code>. <strong>Import</strong> replaces everything in the current browser with the file (it asks first). Use it to move devices or hand a mentor your record for review.</li>
+      <li>Sharing the HTML folder is safe: it contains no personal data. Sharing an export file shares your data; it is plain, readable JSON.</li>
+      <li>Clearing browser data deletes your progress. Export weekly.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>Where to go</h2>
+<div class="grid linkgrid">
+  <a class="card" href="roadmap.html"><div class="t">Roadmap</div><div class="small">The six phases and their go / no-go gates. You tick each gate only when the numbers say you earned it.</div></a>
+  <a class="card" href="learning.html"><div class="t">Learning</div><div class="small">Work through the free curriculum and log each study session and what you took from it.</div></a>
+  <a class="card" href="journal.html"><div class="t">Journal</div><div class="small">Record every practice and backtest trade, and whether you followed your rules. This feeds the numbers on the roadmap.</div></a>
+  <a class="card" href="money.html"><div class="t">Money</div><div class="small">Write down every dollar that goes out or comes in, and watch it against the $600 cap.</div></a>
+  <a class="card" href="decisions.html"><div class="t">Decisions</div><div class="small">The written rules and the open questions. Rules change here, in writing, never mid-trade.</div></a>
+  <a class="card" href="ai.html"><div class="t">AI &amp; you</div><div class="small">What an AI helper can and cannot do for you here (it can enforce and review; it cannot predict prices).</div></a>
+</div>
+
+<div class="callout">
+  <span class="plain"><strong>Start with Phase 0.</strong> Open the <a href="roadmap.html">Roadmap</a>: it shows the three things to do this week.</span>
+  <span class="detail"><strong>Next action:</strong> open the <a href="roadmap.html">Roadmap</a>; the hand-holding box under the current phase lists the first unchecked gates.</span>
+</div>
+
+<p class="small muted">Disclaimer: this is an educational plan, not investment advice. No one involved is a licensed financial advisor. Trading leveraged products loses money for the large majority of people who try it. Read the reality check before anything else.</p>
+
+</main>
+
+<script>
+TA.init({page:'index.html'});
+
+(function () {
+  var PHASES = [
+    { n: 'Orientation', weeks: 2, gates: ['p0-glossary','p0-possize','p0-rules2firms'] },
+    { n: 'Build one strategy', weeks: 6, gates: ['p1-backtest-100','p1-expectancy','p1-maxdd','p1-second-reader','p1-d005'] },
+    { n: 'Forward test on demo', weeks: 16, gates: ['p2-trades-40','p2-adherence','p2-expectancy','p2-no-breach','p2-return-dd','p2-free-trial','p2-od6','p2-d006'] },
+    { n: 'First paid challenge', weeks: 14, gates: ['p3-passed'] },
+    { n: 'Funded, first payouts', weeks: 16, gates: ['p4-payouts','p4-adherence','p4-d010'] },
+    { n: 'Scale', weeks: 0, gates: [] }
+  ];
+  var BUDGET = 600;
+
+  function num(v) { var x = parseFloat(v); return isNaN(x) ? 0 : x; }
+  function parseISO(s) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
+  function isoOf(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function addWeeks(d, w) { var x = new Date(d.getTime()); x.setDate(x.getDate() + w * 7); return x; }
+  function stat(num, lbl, sub, barPct) {
+    return '<div class="card stat"><div class="num">' + num + '</div><div class="lbl">' + lbl + '</div>' +
+      (barPct != null ? '<div class="progress' + (barPct >= 100 ? ' ok' : '') + '"><span style="width:' + Math.min(100, barPct) + '%"></span></div>' : '') +
+      (sub ? '<div class="sub">' + sub + '</div>' : '') + '</div>';
+  }
+
+  function currentPhase(gates) {
+    for (var i = 0; i < 5; i++) {
+      if (!PHASES[i].gates.every(function (g) { return gates[g]; })) return i;
+    }
+    return 5;
+  }
+
+  function renderSetup() {
+    var p = TA.store.get('profile', null) || {};
+    var complete = !!p.startDate;
+    var form = '<form id="setupForm" class="card" autocomplete="off">' +
+      '<div class="plain"><p>Tell the site a little about you. It stays in this browser. Your "why" and your "I stop if" are the two most important lines on the whole site: you write them now, while you are calm.</p></div>' +
+      '<div class="detail"><p class="small">Writes <code>profile</code> {name, startDate, hoursPerWeek, partner, why, stop}. The why/stop text is also decision D-001.</p></div>' +
+      '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">' +
+      '<label class="f">Your name<input type="text" id="pf-name" value="' + TA.esc(p.name) + '"></label>' +
+      '<label class="f">Start date<input type="date" id="pf-start" value="' + TA.esc(p.startDate || isoOf(new Date())) + '"></label>' +
+      '<label class="f">Hours per week you can give<input type="number" id="pf-hours" min="0" step="0.5" value="' + TA.esc(p.hoursPerWeek == null ? 8 : p.hoursPerWeek) + '"></label>' +
+      '<label class="f">Accountability partner (who reads your weekly review?)<input type="text" id="pf-partner" value="' + TA.esc(p.partner) + '"></label>' +
+      '</div>' +
+      '<label class="f" style="margin-top:10px">My why (why am I doing this?)<textarea id="pf-why">' + TA.esc(p.why) + '</textarea></label>' +
+      '<label class="f" style="margin-top:10px">I stop if... (be specific, with numbers)<textarea id="pf-stop">' + TA.esc(p.stop) + '</textarea></label>' +
+      '<p><button type="submit" class="btn primary">Save</button> <span class="meta" id="pf-msg"></span></p>' +
+      '</form>';
+    var box = document.getElementById('setupBox');
+    if (complete) {
+      box.innerHTML = '<details class="card"><summary>Edit my details</summary>' + form.replace('class="card"', '') + '</details>';
+    } else {
+      box.innerHTML = '<div class="callout warn"><span class="plain"><strong>Set up first.</strong> Fill this in once and the dashboard below comes alive.</span><span class="detail"><strong>No profile yet.</strong> The dashboard needs <code>profile.startDate</code> to compute days and planned dates.</span></div>' + form;
+    }
+    document.getElementById('setupForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var old = TA.store.get('profile', null) || {};
+      var prof = Object.assign({}, old, {
+        name: document.getElementById('pf-name').value.trim(),
+        startDate: document.getElementById('pf-start').value,
+        hoursPerWeek: num(document.getElementById('pf-hours').value),
+        partner: document.getElementById('pf-partner').value.trim(),
+        why: document.getElementById('pf-why').value.trim(),
+        stop: document.getElementById('pf-stop').value.trim()
+      });
+      TA.store.set('profile', prof);
+      renderSetup(); renderDash();
+    });
+  }
+
+  function renderDash() {
+    var p = TA.store.get('profile', null) || {};
+    var gates = TA.store.get('gates', {});
+    var log = TA.list('learninglog'), trades = TA.list('trades'), ledger = TA.list('ledger');
+    var cur = TA.store.get('curriculum', {});
+    var dec = TA.store.get('decisions', {});
+
+    var phase = currentPhase(gates);
+    var allGates = []; PHASES.forEach(function (ph) { allGates = allGates.concat(ph.gates); });
+    var gDone = allGates.filter(function (g) { return gates[g]; }).length;
+    var gPct = Math.round(gDone / allGates.length * 100);
+
+    var hours = log.reduce(function (a, r) { return a + num(r.hours); }, 0);
+    var out = ledger.reduce(function (a, r) { return a + num(r.out); }, 0);
+    var inn = ledger.reduce(function (a, r) { return a + num(r.in); }, 0);
+    var accepted = Object.keys(dec).filter(function (k) { return dec[k] && dec[k].status === 'Accepted'; }).length;
+    var decTotal = Math.max(10, Object.keys(dec).filter(function (k) { return /^D-\d+$/.test(k); }).length);
+    var curDone = Object.keys(cur).filter(function (k) { return cur[k]; }).length;
+    var curTotal = num(TA.store.get('curriculumTotal', 0));
+
+    var start = parseISO(p.startDate), days = '-', daysSub = 'Set a start date above';
+    var plannedEnd = '-', plannedSub = '';
+    if (start) {
+      var d = Math.floor((new Date() - start) / 86400000);
+      days = d >= 0 ? d : 0;
+      daysSub = d >= 0 ? 'week ' + (Math.floor(d / 7) + 1) : 'starts in ' + (-d) + ' days';
+      if (phase < 5) {
+        var cum = 0; for (var i = 0; i <= phase; i++) cum += PHASES[i].weeks;
+        plannedEnd = isoOf(addWeeks(start, cum)); plannedSub = 'planned end of this phase';
+      } else { plannedEnd = 'ongoing'; plannedSub = 'Phase 5 has no end date'; }
+    }
+
+    var overBudget = out > BUDGET;
+    var h = '';
+    h += stat(phase < 5 ? 'Phase ' + phase : 'Phase 5', phase < 5 ? PHASES[phase].n : 'Scale (all earlier gates ticked)', 'first phase with an unticked gate');
+    h += stat(days, 'Days since you started', daysSub);
+    h += stat(plannedEnd, 'Planned phase end', plannedSub);
+    h += stat(TA.fmt(hours, 1), 'Hours of learning logged', p.hoursPerWeek ? 'you planned ' + TA.esc(p.hoursPerWeek) + ' h/week' : '');
+    h += curTotal > 0
+      ? stat(Math.round(curDone / curTotal * 100) + '%', 'Curriculum done', curDone + ' of ' + curTotal + ' items', Math.round(curDone / curTotal * 100))
+      : stat(curDone, 'Curriculum items ticked', 'see the Learning page');
+    h += stat(gPct + '%', 'Gates passed', gDone + ' of ' + allGates.length + ' ticked', gPct);
+    h += stat(trades.length, 'Practice / live trades logged', 'see the Journal page');
+    h += stat('$' + TA.fmt(out, 0) + ' / $' + BUDGET, 'Cash out vs year-1 budget', (overBudget ? '<span style="color:var(--bad)">OVER BUDGET: stop rule applies. </span>' : '') + 'money back in: $' + TA.fmt(inn, 0), Math.round(out / BUDGET * 100));
+    h += stat(accepted + ' / ' + decTotal, 'Decisions accepted', 'see the Decisions page');
+    document.getElementById('dash').innerHTML = h;
+
+    var pl = '';
+    if (p.name) pl += '<p><strong>' + TA.esc(p.name) + '</strong>' + (p.partner ? ', accountability partner: ' + TA.esc(p.partner) : '') + '.</p>';
+    if (p.why) pl += '<div class="quote"><strong>My why:</strong> ' + TA.esc(p.why) + '</div>';
+    if (p.stop) pl += '<div class="quote"><strong>I stop if:</strong> ' + TA.esc(p.stop) + '</div>';
+    document.getElementById('profileLine').innerHTML = pl;
+  }
+
+  renderSetup();
+  renderDash();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en" data-mode="plain">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learning - tradingAI</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/app.js"></script>
+<style>
+  .wrap { overflow-wrap: break-word; }
+  .toc { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 6px 0 0; padding: 0; list-style: none; }
+  .toc li { max-width: none; }
+  .start { border: 2px solid var(--accent); background: var(--info-bg); }
+  .start h2 { border: 0; margin-top: 0; }
+  .start ol { padding-left: 1.3em; margin: .4em 0; }
+  .start li { margin-bottom: .7em; }
+  .check .body { flex: 1; min-width: 0; }
+  .check .body label { display: block; }
+  .check.done .body .meta { text-decoration: none; }
+  .stats { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 10px 0; }
+  .stats .card { margin: 0; }
+  .term { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); margin: 6px 0; padding: 8px 12px; }
+  .term[open] { border-color: var(--accent); }
+  .term.known summary::after { content: " \2713"; color: var(--ok); }
+  .term .body { margin-top: 8px; }
+  .term .body p { margin: .4em 0; }
+  .term .tick { display: flex; gap: 8px; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .term .tick input { width: 18px; height: 18px; }
+  .group-h { margin-top: 1.2em; font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .trap h3 { margin-top: 0; }
+  .trap .lab { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); display: block; margin-top: .5em; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin: 8px 0; }
+  .toolbar label { display: inline-flex; gap: 6px; align-items: center; }
+  .skip li { margin-bottom: .5em; }
+  @media (max-width: 640px) {
+    table.stack thead { display: none; }
+    table.stack, table.stack tbody, table.stack tr, table.stack td { display: block; width: 100%; }
+    table.stack tr { border: 1px solid var(--line); border-radius: 8px; margin: 8px 0; padding: 6px 10px; background: var(--panel); }
+    table.stack td { border: 0; padding: 3px 0; }
+    table.stack td[data-label]::before { content: attr(data-label); display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+    table.stack td.right { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<h1>Learning</h1>
+
+<div class="plain">
+  <p>This is the page where you learn, one small step at a time. You do not need to know anything about finance to start. Each step is a box you tick. Write a short note after every study session. Over weeks, the ticks and the hours add up, and you can see it.</p>
+  <p class="meta">Nothing here costs money. Nothing here is a promise that you will earn anything. It is a way to find out, cheaply and honestly.</p>
+</div>
+<div class="detail">
+  <p>Curriculum for Phase 0 (mechanics, about 12 h) and Phase 1 (strategy foundations, about 48 h), at $0 cost. Source of truth: <code>learning/CURRICULUM.md</code>, with alternatives in <code>research/tooling-and-learning.md</code> section 1. Tick boxes as you go and log each session. Progress is stored in this browser (<code>curriculum</code>, <code>learninglog</code>, <code>glossaryQuiz</code>); use Export to back it up or send it to your accountability partner.</p>
+</div>
+<ul class="toc small">
+  <li><a href="#progress">Progress</a></li><li><a href="#start">Start here</a></li><li><a href="#curriculum">Checklist</a></li><li><a href="#skipped">Skipped</a></li><li><a href="#why-free">Why free</a></li><li><a href="#log">Learning log</a></li><li><a href="#glossary">Glossary self-test</a></li><li><a href="#psych">Psychology</a></li>
+</ul>
+
+<!-- ================= PROGRESS ================= -->
+<h2 id="progress">Your progress</h2>
+<div class="card">
+  <div class="plain"><p id="p-plain-line" class="meta"></p></div>
+  <div class="detail"><p id="p-detail-line" class="meta"></p></div>
+  <div class="small"><strong>Phase 0</strong> <span id="p0-text" class="meta"></span></div>
+  <div class="progress" id="p0-bar"><span></span></div>
+  <div class="small"><strong>Phase 1</strong> <span id="p1-text" class="meta"></span></div>
+  <div class="progress" id="p1-bar"><span></span></div>
+  <div class="small"><strong>Hours logged vs planned</strong> <span id="h-text" class="meta"></span></div>
+  <div class="progress" id="h-bar"><span></span></div>
+  <div class="stats">
+    <div class="card stat"><div class="num" id="s-logged">0</div><div class="lbl">hours logged</div></div>
+    <div class="card stat"><div class="num" id="s-planned">0</div><div class="lbl">hours planned (Phases 0 + 1)</div></div>
+    <div class="card stat"><div class="num" id="s-remaining">0</div><div class="lbl">hours of items still unticked</div></div>
+    <div class="card stat"><div class="num" id="s-finish">-</div><div class="lbl">estimated finish</div></div>
+  </div>
+  <div class="callout" id="finish-note"></div>
+</div>
+
+<!-- ================= START HERE ================= -->
+<h2 id="start" style="border:0;margin-bottom:0">Start here, today</h2>
+<div class="card start">
+  <p class="meta" style="margin-top:0">The next three things on your list. Do them in this order. When you finish one, tick its box in the checklist below and this box updates.</p>
+  <ol id="start-list"></ol>
+</div>
+
+<!-- ================= CURRICULUM ================= -->
+<h2 id="curriculum">The checklist</h2>
+<div class="plain">
+  <p>Two stages. Stage one (Phase 0) is learning the words and the buttons. Stage two (Phase 1) is learning how to make a written set of rules and testing them on old charts, with pretend trades. No real money is used in either stage.</p>
+</div>
+<div class="detail">
+  <p>Phase 0 exit gate and Phase 1 exit gate are defined in <code>docs/03-roadmap.md</code>. Hour estimates are planning figures; log your real hours below and compare.</p>
+</div>
+
+<div class="card phase current" id="phase0">
+  <h3 style="margin-top:0"><span class="plain">Phase 0: learn the basics</span><span class="detail">Phase 0: Mechanics</span> <span class="badge" id="p0-hours"></span></h3>
+  <div id="p0-rows"></div>
+</div>
+
+<div class="card phase" id="phase1">
+  <h3 style="margin-top:0"><span class="plain">Phase 1: learn to make a rulebook and test it</span><span class="detail">Phase 1: Strategy foundations</span> <span class="badge" id="p1-hours"></span></h3>
+  <div id="p1-rows"></div>
+</div>
+
+<details class="card">
+  <summary>Free reading list (links)</summary>
+  <ul class="small">
+    <li><a href="https://www.babypips.com/learn/forex/school-of-pipsology" target="_blank" rel="noopener">Babypips School of Pipsology</a></li>
+    <li>Adam Grimes, The Art and Science of Trading (free course): search "MarketLife Adam Grimes course"</li>
+    <li><a href="https://www.cmegroup.com/education" target="_blank" rel="noopener">CME Group Education</a> (futures mechanics, optional)</li>
+    <li><a href="https://ftmo.com/en/trading-objectives/" target="_blank" rel="noopener">FTMO Trading Objectives</a></li>
+    <li><a href="https://ftmo.com/en/forbidden-trading-practices/" target="_blank" rel="noopener">FTMO Forbidden practices</a></li>
+    <li><a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener">Forex Factory calendar</a></li>
+    <li><a href="https://github.com/theorycraft-trading/dukascopy" target="_blank" rel="noopener">Dukascopy historical data</a></li>
+    <li><a href="https://payoutjunction.com/statistics" target="_blank" rel="noopener">Payout Junction</a> (independent payout stats)</li>
+    <li><a href="https://propfirmmatch.com" target="_blank" rel="noopener">Prop Firm Match</a> (comparison, Pakistan filters)</li>
+  </ul>
+  <p class="small"><strong>Books, in order:</strong> 1. Mark Douglas, <em>Trading in the Zone</em>. 2. Van Tharp, <em>Trade Your Way to Financial Freedom</em>. 3. Brent Penfold, <em>The Universal Principles of Successful Trading</em>. 4. Tomasini and Jaekle, <em>Trading Systems</em> (only once you are coding backtests).</p>
+</details>
+
+<!-- ================= SKIPPED ================= -->
+<h2 id="skipped">Explicitly skipped (for now)</h2>
+<div class="plain">
+  <p><strong>Things that look like shortcuts and are not.</strong> You will meet these online. We skip them on purpose, for now.</p>
+  <ul class="skip">
+    <li><strong>Trading styles with fancy names (ICT, SMC, Elliott Wave, harmonic patterns).</strong> The rules are loose. Two people can look at the same chart and disagree. If two people cannot agree, we cannot test it, and a computer cannot check it.</li>
+    <li><strong>Lots of chart add-ons (indicators).</strong> We use only two simple ones to start. More of them mostly means more ways to fool yourself.</li>
+    <li><strong>Any paid course.</strong> The lessons we need are free. See "Why free material first" below.</li>
+    <li><strong>Any Telegram or Discord room that sends trade tips.</strong> Never follow someone else's tips with your money. This is rule number one.</li>
+    <li><strong>Crypto.</strong> The person in the video lost money this way. Prop-firm rules for it also often differ.</li>
+  </ul>
+  <p class="meta">We can look at any of these again later, but only by writing down why, in the decision log.</p>
+</div>
+<div class="detail">
+  <p>ICT/SMC content, Elliott Wave, harmonic patterns, indicators beyond EMA/ATR, any paid course, any Telegram/Discord signal room, crypto. Revisit only after D-005 (Strategy v1 frozen) and only through a decision record.</p>
+  <table class="stack">
+    <thead><tr><th>Skipped</th><th>Reason (from the repo)</th></tr></thead>
+    <tbody>
+      <tr><td data-label="Skipped">ICT/SMC, Elliott Wave, harmonics</td><td data-label="Reason">Strategy must be rule-based and unambiguous so it can be backtested, measured for adherence, taught, and checked by a script (docs/04, D-003). Subjective pattern systems fail that test.</td></tr>
+      <tr><td data-label="Skipped">Indicators beyond EMA/ATR</td><td data-label="Reason">D-003: no indicators beyond EMA/ATR in v1; limits strategy-hopping and curve-fitting.</td></tr>
+      <tr><td data-label="Skipped">Any paid course</td><td data-label="Reason">D-002: the content exists free; reconsider after Phase 1 only via a decision naming what the free material failed to provide.</td></tr>
+      <tr><td data-label="Skipped">Signal rooms (Telegram/Discord)</td><td data-label="Reason">Reality check non-negotiable 1: no signal groups, no paid "gems", no copying, ever.</td></tr>
+      <tr><td data-label="Skipped">Crypto</td><td data-label="Reason">The guest's early crypto signals and "gems" lost about $2,000; docs/04 keeps crypto off the prop account because the rules often differ.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ================= WHY FREE ================= -->
+<h2 id="why-free">Why free material first (decision D-002)</h2>
+<div class="plain">
+  <div class="callout">
+    <p>The video is an advert for a $500 course. The lessons inside that kind of course are available for free (Babypips, Adam Grimes, Mark Douglas, Van Tharp). So what did the guest really pay for?</p>
+    <p><strong>He paid for someone checking on him.</strong> By his own account, the thing that turned his results around was mentor sessions and posting his trades in public. Not secret knowledge.</p>
+    <p>This site gives you that part too, for free: you write the learning log, you do a weekly review every Sunday, and you use <strong>Export</strong> to send your progress to your partner (your wife or your brother). They do not need to know trading. They only need to see that you did what you said you would do.</p>
+  </div>
+</div>
+<div class="detail">
+  <p><strong>D-002 (Proposed):</strong> Phase 0-1 use only free material. The video is an advertisement for a $500 course; the guest credits the community and mentor sessions, not the content, for his turnaround; equivalent content is free. A paid course can be reconsidered after Phase 1 through a new decision that names what the free material failed to provide.</p>
+  <p><strong>Consequence:</strong> saves $500 and forces us to build our own accountability: the learning log, the Sunday weekly review shared with a partner, and the JSON export (top bar) that the partner can read or import.</p>
+</div>
+
+<!-- ================= LEARNING LOG ================= -->
+<h2 id="log">Learning log</h2>
+<div class="plain"><p>After every study session, add one line: the date, how long you studied, what you did, the one thing you learned, and any question you still have. Be honest. The point is to see the hours add up (or not).</p></div>
+<div class="detail"><p>One entry per session, stored under <code>learninglog</code> as <code>{id, date, hours, what, takeaway, questions}</code>. Hours here feed the progress bar at the top. The repo copy is <code>learning/LEARNING-LOG.md</code>; this page is the working version.</p></div>
+
+<div class="card">
+  <form id="log-form" class="inline" autocomplete="off">
+    <label class="f">Date<input type="date" id="lg-date" required></label>
+    <label class="f">Hours<input type="number" id="lg-hours" min="0.25" max="24" step="0.25" placeholder="1.5" required></label>
+    <label class="f" style="grid-column: 1 / -1">What did you do?<input type="text" id="lg-what" maxlength="300" placeholder="e.g. Babypips Preschool, lessons 1 to 6" required></label>
+    <label class="f" style="grid-column: 1 / -1">One thing you learned<textarea id="lg-take" maxlength="1000" placeholder="In your own words"></textarea></label>
+    <label class="f" style="grid-column: 1 / -1">Questions you still have<textarea id="lg-q" maxlength="1000" placeholder="Things to ask your assistant or mentor"></textarea></label>
+    <div><button class="btn primary" type="submit">Add to log</button></div>
+  </form>
+</div>
+<p class="small"><strong>Total hours logged: <span id="log-total">0</span></strong> <span class="meta">(<span id="log-count">0</span> sessions)</span></p>
+<table class="stack" id="log-table">
+  <thead><tr><th>Date</th><th>Hours</th><th>What</th><th>Key takeaway</th><th>Questions</th><th></th></tr></thead>
+  <tbody id="log-body"></tbody>
+</table>
+<p class="meta" id="log-empty">Nothing logged yet. Your first entry goes here.</p>
+
+<!-- ================= GLOSSARY ================= -->
+<h2 id="glossary">Glossary self-test</h2>
+<div class="plain">
+  <p>Every word you will meet, one at a time. Open a word. Cover the answer in your head first. Can you explain it to someone out loud, without looking? If yes, tick the box. If not, read it again and come back tomorrow.</p>
+</div>
+<div class="detail">
+  <p>All terms from <code>docs/01-glossary.md</code>. Ticking "I can explain this without looking" stores <code>glossaryQuiz[termId] = true</code>. This is the first Phase 0 exit gate: "Can explain, from memory, every term in docs/01".</p>
+</div>
+<div class="card">
+  <div class="small"><strong id="g-count">0 of 0 terms</strong></div>
+  <div class="progress" id="g-bar"><span></span></div>
+  <div class="callout warn" id="g-gate"></div>
+  <div class="toolbar">
+    <label class="small"><input type="checkbox" id="g-filter"> Show only terms I have not ticked</label>
+    <button class="btn small" id="g-random" type="button">Quiz me: open a random unticked term</button>
+    <button class="btn small" id="g-collapse" type="button">Close all</button>
+  </div>
+</div>
+<div id="g-list"></div>
+
+<!-- ================= PSYCHOLOGY ================= -->
+<h2 id="psych">Psychology: how people lose, and how we avoid it</h2>
+
+<div class="plain">
+  <p>Everything the person in the video did wrong has a name, and it is predictable. We do not try to be stronger than him. We set things up so each mistake is hard to make.</p>
+  <div class="grid">
+    <div class="card trap">
+      <h3>1. Chasing a loss</h3>
+      <p>Putting in more money, or trading harder, to win back what you lost. This is how a small loss becomes a big one.</p>
+      <span class="lab">How we avoid it</span>
+      <p>A fixed budget that is agreed in advance, kept separate, never topped up mid-year. After any breach, 48 hours with no trading and a written note about what happened.</p>
+    </div>
+    <div class="card trap">
+      <h3>2. Trusting someone else's tips</h3>
+      <p>Paying for a group that says "buy this now, it will double today". Greed and hope do the buying, not you.</p>
+      <span class="lab">How we avoid it</span>
+      <p>No tips, ever. Anyone promising a quick double is a red flag, not an opportunity. Every trade has a stop (an exit for a small loss) set before you enter.</p>
+    </div>
+    <div class="card trap">
+      <h3>3. Changing the plan after a bad week</h3>
+      <p>Switching to faster, riskier trading, or trying a new method on a paid test. The person in the video blew about 15 accounts like this.</p>
+      <span class="lab">How we avoid it</span>
+      <p>One written strategy. All experimenting happens free, in practice mode. Changing the plan needs a written decision, not a bad night. A weekly loss limit stops trading for the week.</p>
+    </div>
+    <div class="card trap">
+      <h3>4. Feeling like a genius after wins</h3>
+      <p>Two good months, then a big bet, then it is all gone.</p>
+      <span class="lab">How we avoid it</span>
+      <p>After a good month, we risk less, not more. After a big win, 24 hours off. The monthly goal (3%) is a ceiling, not a minimum.</p>
+    </div>
+    <div class="card trap">
+      <h3>5. Doing it alone, and watching all day</h3>
+      <p>No one checks on you, and you stare at charts instead of living. In the story his grades fell while he watched trades.</p>
+      <span class="lab">How we avoid it</span>
+      <p>Slow, daily-chart trading, checked at most twice a day. A weekly review shared with one person you trust. Do not talk about open trades with anyone.</p>
+    </div>
+  </div>
+</div>
+
+<div class="detail">
+  <p>From <code>docs/06-psychology.md</code>. The aim is to make each failure structurally hard to commit.</p>
+  <table class="stack">
+    <thead><tr><th>What happened in the video</th><th>Name</th><th>Countermeasure in this repo</th></tr></thead>
+    <tbody>
+      <tr><td data-label="What happened">Put PKR 5k in, "nothing happening", put 20k more, then 5k + friend's 5k</td><td data-label="Name"><strong>Escalation of commitment / sunk cost</strong></td><td data-label="Countermeasure">Fixed loss budget (D-004), separate envelope, no mid-year top-ups</td></tr>
+      <tr><td data-label="What happened">Joined a paid signal group, then "hidden gems" promising 2-3x a day</td><td data-label="Name"><strong>Outsourcing judgement; greed</strong></td><td data-label="Countermeasure">Rule 1 in reality check: no signals, ever. Any "gem" = instant red flag</td></tr>
+      <tr><td data-label="What happened">Kept buying every dip of delisted coins "waiting for the pullback"</td><td data-label="Name"><strong>Hope as a strategy; no stop</strong></td><td data-label="Countermeasure">SL set at entry, never widened; rule guard flags trades without SL</td></tr>
+      <tr><td data-label="What happened">CGPA 3.8 to 3.55 while watching trades</td><td data-label="Name"><strong>Over-monitoring</strong></td><td data-label="Countermeasure">Swing timeframes; no charts during work hours; check twice a day max</td></tr>
+      <tr><td data-label="What happened">First challenge: told cousin "it'll pass tonight", woke to SL hits, "emotions got disturbed"</td><td data-label="Name"><strong>Outcome attachment; counting money before it's made</strong></td><td data-label="Countermeasure">Journal in R not $. Don't discuss open trades with anyone. Weekly review only</td></tr>
+      <tr><td data-label="What happened">Next Monday: "this week I'll pass both phases", switched to scalping</td><td data-label="Name"><strong>Revenge trading; moving the goalposts</strong></td><td data-label="Countermeasure">Weekly loss cap halts trading; monthly target is 3% and is a <em>ceiling</em>; strategy frozen by decision record, so changing it takes a written ADR, not a bad night</td></tr>
+      <tr><td data-label="What happened">15 accounts in 6 months testing new strategies on real challenges</td><td data-label="Name"><strong>Strategy hopping; testing with money</strong></td><td data-label="Countermeasure">All testing happens in Phase 1-2 for free. Paid challenges run the frozen strategy only. Max 2 paid attempts per budget</td></tr>
+      <tr><td data-label="What happened">"3% a month? Who can be that patient?"</td><td data-label="Name"><strong>Impatience; disbelief that simple works</strong></td><td data-label="Countermeasure">Gates are numeric. "Is this too slow?" is answered by the math in docs/03, not by feel</td></tr>
+      <tr><td data-label="What happened">Two 2-month streaks with no SL, "I'm the king of the market", big shot, gone</td><td data-label="Name"><strong>Overconfidence after wins</strong></td><td data-label="Countermeasure">Monthly target reached, then risk <em>drops</em> to 0.5%. The best month is followed by the most conservative month</td></tr>
+      <tr><td data-label="What happened">Only recovered because of mentor sessions and public accountability</td><td data-label="Name"><strong>Isolation</strong></td><td data-label="Countermeasure">Weekly review shared with one accountability person (spouse/brother). Later: the community we build</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>Before every trade: the checklist</h3>
+<div class="plain">
+  <p>Take 60 seconds. Answer yes or no to each. <strong>If any answer is "no", you do not trade.</strong></p>
+  <ol>
+    <li>Do I know which direction the bigger picture points (the "bias")?</li>
+    <li>Is the price at a place my rules say is worth looking at (the "location")?</li>
+    <li>Did my rule's signal actually happen (the "trigger"), or am I hoping?</li>
+    <li>Have I set my safety exit (stop loss)?</li>
+    <li>Did I calculate the trade size with the tool, not by feel?</li>
+    <li>Did I check the news calendar for today and tomorrow?</li>
+    <li>Am I already exposed to the same thing in another trade (correlated exposure)?</li>
+  </ol>
+  <p>After the trade closes, and <em>before</em> looking at profit: score yourself 0 to 10 on how well you followed your own rules. That score matters more than the money.</p>
+</div>
+<div class="detail">
+  <p>Pre-trade checklist (journal row): <strong>bias? location? trigger? SL set? size computed? news checked? correlated exposure?</strong> Any "no" means no trade. Post-trade, before viewing P&amp;L: rate rule adherence 0-10; adherence is the KPI (gate: at least 95% by Phase 2 exit).</p>
+  <p><strong>After any breach (simulated or real):</strong> 48 hours of no trading and a post-mortem (<code>journal/POST-MORTEMS.md</code>). <strong>After any big win:</strong> 24 hours off and re-read the overconfidence row.</p>
+</div>
+
+<h3>Sunday ritual (30 minutes)</h3>
+<div class="plain">
+  <ol>
+    <li>Sit down once a week, on Sunday. Set a timer for 30 minutes.</li>
+    <li>Fill in the weekly review page: the numbers, the rules you broke (even small ones), trades you skipped that were fine, and one thing you will do differently next week. It must be about <em>how you act</em>, not about winning.</li>
+    <li>Send it to your partner. They do not have to understand trading. They are there so you cannot quietly skip this.</li>
+  </ol>
+</div>
+<div class="detail">
+  <p>Sunday review, 30 minutes: fill <code>journal/WEEKLY-REVIEW-TEMPLATE.md</code> (numbers for 7d/30d/phase, rules broken, rule-compliant trades skipped, one process change, emotional state, gate status, decisions proposed). Send to your accountability person and update <code>tracking/PROGRESS.md</code>. You can also give the AI the week's journal rows to draft it (see the AI &amp; you page).</p>
+  <p class="meta">The whole system in one sentence: stop trying to be clever; do the boring thing the experienced person said, every time, and write it down.</p>
+</div>
+
+</main>
+
+<script>
+TA.init({page:'learning.html'});
+
+/* ---------- data ---------- */
+var BP = 'https://www.babypips.com/learn/forex/school-of-pipsology';
+var ITEMS = [
+ {id:'p0-read-repo', ph:0, h:1, url:'',
+  plain:'Read the first four notes in the docs folder', detail:'Read this repo: docs/00 to 03',
+  doOne:'Open the docs folder in this project. Read files 00, 01, 02 and 03, in order. They explain the reality, the words, how the firms work, and the plan.'},
+ {id:'p0-babypips-preschool', ph:0, h:4, url:BP,
+  plain:'Babypips Preschool: the basics of trading currencies', detail:'Babypips Preschool: what is forex, pips, lots, leverage, margin, order types, sessions',
+  doOne:'Open this link. Read the Preschool lessons: what is forex, pips, lots, leverage, margin, order types, and market sessions.'},
+ {id:'p0-babypips-kinder-elem', ph:0, h:4, url:BP,
+  plain:'Babypips Kindergarten and Elementary: brokers, charts, candle shapes', detail:'Babypips Kindergarten + Elementary: brokers, charts, candlesticks basics, support/resistance intro',
+  doOne:'Open this link. Read Kindergarten and Elementary: brokers, charts, candlesticks, and an intro to support and resistance.'},
+ {id:'p0-mt5-demo', ph:0, h:2, url:'',
+  plain:'Open a practice account and place 20 practice orders', detail:'Open MT5 demo + TradingView free; place 20 practice orders of every type; take a screenshot of each order ticket',
+  doOne:'Open a free MT5 demo account and a free TradingView account. Place 20 practice orders, one of every type. Take a screenshot of each order ticket. No real money is involved.'},
+ {id:'p0-firm-rules', ph:0, h:1, url:'https://ftmo.com/en/trading-objectives/',
+  plain:'Read two firms\' rule pages and copy the numbers', detail:'Read FTMO Trading Objectives page and FundedNext rules page end to end; fill tools/challenge_rules.json',
+  doOne:'Open this link and read the FTMO Trading Objectives page to the end. Then do the same for the FundedNext rules page. Type the numbers into tools/challenge_rules.json.'},
+ {id:'p0-glossary-quiz', ph:0, h:0.5, url:'#glossary',
+  plain:'Quiz yourself on the glossary without looking', detail:'Quiz yourself on docs/01 glossary without looking',
+  doOne:'Scroll to the Glossary self-test on this page. Tick a term only when you can explain it without looking.'},
+
+ {id:'p1-babypips-middle', ph:1, h:4, url:BP,
+  plain:'Babypips Middle School: trends, price levels, moving averages', detail:'Babypips Middle School: trends, S/R, Fibonacci (skim), moving averages, ATR',
+  doOne:'Open this link. Read Middle School: trends, support and resistance, moving averages and ATR. Only skim the Fibonacci lessons.'},
+ {id:'p1-babypips-summer-high', ph:1, h:6, url:BP,
+  plain:'Babypips Summer School and High School: plans, risk, position size', detail:'Babypips Summer School + High School: multiple timeframes, trading plan, risk management, position sizing, expectancy',
+  doOne:'Open this link. Read Summer School and High School: multiple timeframes, a trading plan, risk management, position sizing, and expectancy.'},
+ {id:'p1-grimes', ph:1, h:12, url:'',
+  plain:'Adam Grimes free course: how markets move, and why most patterns are noise', detail:'Adam Grimes, The Art and Science of Trading free course: market structure, pullbacks, "why most patterns are noise" (verify availability at marketlife)',
+  doOne:'Search the web for "MarketLife Adam Grimes course". Work through the modules on market structure, pullbacks, and why most patterns are noise. If it is no longer free, tell your assistant before swapping it for anything else.'},
+ {id:'p1-douglas', ph:1, h:6, url:'',
+  plain:'Read "Trading in the Zone" (about your own mind) and write a one-page summary', detail:'Mark Douglas, Trading in the Zone: all. Write a one-page summary in learning/notes/douglas.md',
+  doOne:'Buy or borrow "Trading in the Zone" by Mark Douglas. Read all of it. Then write a one-page summary in learning/notes/douglas.md.'},
+ {id:'p1-tharp', ph:1, h:4, url:'',
+  plain:'Van Tharp: how big each trade should be. Then rebuild the size tool yourself', detail:'Van Tharp: position sizing, R-multiple and expectancy chapters. Rebuild tools/position_size.py from the formulas without looking at the existing one',
+  doOne:'Read the chapters on position sizing, R-multiples and expectancy in Van Tharp\'s book. Then rebuild tools/position_size.py from the formulas, without looking at the existing one.'},
+ {id:'p1-strategy-rules', ph:1, h:2, url:'',
+  plain:'Write your rulebook so clearly nobody can misread it', detail:'Write Strategy v1 rules in docs/04 unambiguously; have your accountability partner mark 10 charts from the rules; count disagreements',
+  doOne:'Write the Strategy v1 rules in docs/04 so clearly that nobody could misread them. Give your partner 10 charts and your rules. Ask them to mark where the rules say to trade. Count the disagreements.'},
+ {id:'p1-hand-backtest', ph:1, h:12, url:'',
+  plain:'"Replay" 100 old trades by hand and write each one down', detail:'100-trade hand backtest on TradingView/FX Replay across 4 markets and 2 distinct years; log every trade in journal/BACKTEST-LOG.csv',
+  doOne:'Use TradingView replay or FX Replay. Step through old charts and take 100 pretend trades by your rules, across 4 markets and 2 different years. Log every trade in journal/BACKTEST-LOG.csv.'},
+ {id:'p1-gate-review', ph:1, h:1, url:'',
+  plain:'Run the stats tool and write down whether you passed the Phase 1 gate', detail:'Run tools/journal_stats.py; write the Phase 1 gate review in tracking/PROGRESS.md',
+  doOne:'Run tools/journal_stats.py on your backtest log. Write the Phase 1 gate review in tracking/PROGRESS.md.'},
+ {id:'p1-decide-od', ph:1, h:1, url:'',
+  plain:'Make three open decisions and write them down', detail:'Decide OD-2, OD-3, OD-4; log D-005',
+  doOne:'Decide OD-2, OD-3 and OD-4 from the open decisions list. Then log D-005.'}
+];
+
+var TERMS = [
+ ['Business model', [
+  ['g-prop-firm','Prop firm (proprietary trading firm)',
+   'A company that sells you a paid practice test. If you pass, it lets you trade a bigger pretend account and pays you real money from your pretend profits.',
+   'In the retail sense: a company that sells paid evaluations ("challenges") and lets those who pass trade a larger simulated account, paying them a share of simulated profits in real money. Different from institutional prop firms, which hire salaried traders.'],
+  ['g-challenge','Challenge / Evaluation / "exam"',
+   'The paid test. You pay a fee for one attempt. It is not a certificate or a course. If you fail, the fee is gone.',
+   'The paid test. You pay a one-off fee (e.g. $150-$600) and get a demo account of a nominal size (e.g. $25,000, $100,000). The friend\'s "$200 certification" is this. It certifies nothing; it is a fee for an attempt.'],
+  ['g-phase12','Phase 1 / Phase 2',
+   'Most tests have two rounds. Round 1: grow the pretend account by roughly 8 to 10%. Round 2: grow it by roughly 5% more. In both rounds you must not lose too much.',
+   'Most firms use a two-step test. Phase 1: make e.g. 8-10% profit. Phase 2: make e.g. 5%. Both phases must respect the loss limits. One-step challenges also exist (one target, tighter drawdown).'],
+  ['g-funded','Funded account / "live account"',
+   'What you get after passing. In most cases it is still pretend money, but the payouts you receive are real.',
+   'What you get after passing. At most firms since 2024 it is still a simulated account; the firm pays you from its own revenue (mostly other people\'s challenge fees). The "$10,000 real account" in the friend\'s story is almost certainly this.'],
+  ['g-split','Profit split',
+   'Your share of the pretend profit, paid to you as real cash. Usually 80 out of every 100 made.',
+   'Your share of simulated profits paid in cash, typically 80%, sometimes 90% after scaling. "$1,000 made, $800 to you."'],
+  ['g-payout','Payout',
+   'The real money transfer from the firm to you.',
+   'The cash transfer. The guest shows payouts of $670, $2,462, $3,379, $2,784 across Jan-Mar 2026 on ~$200k accounts, i.e. roughly 1-1.5% a month each.'],
+  ['g-scaling','Scaling plan',
+   'If you keep doing well, the firm gives you a bigger pretend account over time.',
+   'Firms increase the nominal account size (e.g. +25% every 3-4 profitable months) up to a cap, commonly $2M-$4M across accounts.'],
+  ['g-allocation','Allocation',
+   'How much pretend money you are allowed to trade.',
+   'The nominal capital you are allowed to trade. "Max allocation" = the firm\'s cap.'],
+  ['g-refundable','Refundable fee',
+   'Many firms give your test fee back with your first payout.',
+   'Many firms refund the challenge fee with your first payout.'],
+  ['g-blown','Washed / blown / breached account',
+   'You broke a rule, so the account was closed and you lost the fee.',
+   'Broke a rule (usually max loss), so the account is closed and the fee is lost. The guest "washed 15 accounts" in six months.']
+ ]],
+ ['The rules you can break', [
+  ['g-drawdown','Drawdown (DD)',
+   'How far your account has dropped from a high point. Like measuring how far you have walked downhill from the top.',
+   'How far your equity has fallen from a reference point.'],
+  ['g-daily-loss','Max daily loss',
+   'The most you may lose in one day, usually 4 to 5%. Cross it and the account is closed, even if tomorrow would have been a win.',
+   'Usually 4-5% of starting balance in one day (some firms measure from previous day\'s balance or equity, whichever is higher, which catches people). Breach = account closed.'],
+  ['g-max-loss','Max overall loss / max drawdown',
+   'The most you may lose in total, usually 8 to 10%. Some firms measure from your highest point, which is much stricter.',
+   'Usually 8-10% from the starting balance (static) or from the highest balance reached (trailing, much harsher). Breach = account closed.'],
+  ['g-min-days','Minimum trading days',
+   'You must trade on at least a few separate days (like 4 or 5) before you can pass. No winning it all in one day.',
+   'E.g. must trade on at least 4-5 separate days before passing.'],
+  ['g-consistency','Consistency rule',
+   'A rule that stops one lucky day from making most of your profit.',
+   'Some firms require no single day to be more than e.g. 30-40% of total profit. Stops one lucky trade passing you.'],
+  ['g-news','News rule',
+   'Some firms do not let you open or close trades right around big news announcements.',
+   'Some firms forbid opening/closing trades within +/-2 minutes (or more) of high-impact news. The guest\'s first breakeven came from an overnight AUD/NZD news move.'],
+  ['g-weekend','Weekend holding',
+   'Some tests ban keeping a trade open over the weekend.',
+   'Some challenge types forbid holding positions over the weekend. Matters for swing trading.']
+ ]],
+ ['The trading itself', [
+  ['g-forex','Forex',
+   'Trading one currency against another, for example the euro against the dollar.',
+   'Currency pairs (EUR/USD, GBP/JPY, AUD/NZD). The guest trades these plus likely gold (XAU/USD) and indices.'],
+  ['g-spot-futures','Spot vs futures',
+   'Spot means buying the thing itself. Futures means a borrowed-money bet on its price. The second can wipe you out faster.',
+   'Spot = buy the asset. Futures/perpetuals = leveraged bets. He started with spot crypto, lost on "hidden gems" (tiny tokens on decentralised exchanges that went to zero / were delisted).'],
+  ['g-signals','Signals / signal group',
+   'Someone else telling you what to buy. We never trade someone else\'s tips with our money.',
+   'Someone else tells you what to buy. He paid for a Facebook/Telegram premium group and lost everything. Universal lesson: never trade someone else\'s signals with your money.'],
+  ['g-tp','TP (take profit)',
+   'The price where a trade closes with a win. A target you set in advance.',
+   'The price at which a trade is closed in profit. "TP hit" = win. "TP1/TP2" = partial targets.'],
+  ['g-sl','SL (stop loss)',
+   'The price where a trade closes with a small, planned loss. Like an insurance excess: a cost you accept so a disaster cannot happen.',
+   'The price at which a trade is closed at a loss. "SL hit" = a controlled, planned loss. Not a disaster, a cost of doing business.'],
+  ['g-be','Breakeven (BE)',
+   'Moving the safety exit to where you entered, so the trade cannot lose. It sounds safe; in the story it left two trades flat instead of passing.',
+   'Moving the SL to the entry price so the trade can no longer lose. His first challenge went to BE on two trades instead of passing.'],
+  ['g-risk-per-trade','Risk per trade',
+   'How much of the account you lose if the safety exit is hit. Kept small, like 0.5 to 1%, so one bad trade does not hurt.',
+   'How much of the account one SL costs. He started at 2% (too much for prop rules), later 0.5-1%.'],
+  ['g-rr','RR (risk:reward)',
+   'How much you win compared with how much you risk. 1:3 means risk 1 to win 3.',
+   'Ratio of what you make if TP hits to what you lose if SL hits. At 1:3 RR you can win 3 of 10 trades and still profit.'],
+  ['g-winrate','Win rate',
+   'The share of trades that win. On its own it tells you almost nothing.',
+   'Percent of trades that are wins. Meaningless without RR.'],
+  ['g-expectancy','Expectancy',
+   'What you make on average per trade, counting wins and losses together. Like a shop\'s average profit per customer.',
+   'Average $ or R you make per trade: (win% x avg win) - (loss% x avg loss). The only number that matters long term.'],
+  ['g-r','R',
+   'One unit of risk. If you risked 100 and made 250, that is +2.5R. We count in R so the amount of money does not confuse us.',
+   'One unit of risk. A trade risking $100 that makes $250 is "+2.5R". We journal in R, not dollars.'],
+  ['g-swing','Swing trading',
+   'Holding trades for days or weeks. Only a few trades a month, checked once or twice a day.',
+   'Hold trades for days to weeks, few trades a month, analysed on daily/4-hour charts. Guest: 8-10 trades over two months. What the course teaches; what finally worked for him.'],
+  ['g-scalping','Scalping',
+   'Many quick trades lasting minutes. Fast and stressful. It is what the guest was doing when he blew up 15 accounts.',
+   'Trades lasting minutes, many per day, on 1-5 minute charts. What he switched to in "revenge mode" and blew 15 accounts with.'],
+  ['g-revenge','Revenge trading',
+   'Trading to win back a loss. The number one account killer.',
+   'Trading to win back a loss. The #1 account killer.'],
+  ['g-ta','Technical analysis (TA)',
+   'Deciding from price charts (past prices, levels, trends) instead of from economic news.',
+   'Decisions based on price charts (levels, trends, patterns) rather than economic fundamentals.'],
+  ['g-strategy','Strategy / setup',
+   'A written recipe: when to enter, where the stop and target go, how much to risk. Written down, and not changed mid-trade.',
+   'A fixed, written set of conditions under which you enter, where SL and TP go, and how much you risk. "Strategy One" in the community is their named swing setup.'],
+  ['g-lot','Lot / lot size',
+   'The size of a trade. We never pick it by feel. We calculate it from how much we are willing to lose and how far away the stop is.',
+   'Position size. 1 standard lot = 100,000 units of base currency. Position size is derived from risk % and SL distance, never chosen by feel.'],
+  ['g-pip','Pip',
+   'The smallest usual price step. 0.0001 on most currency pairs.',
+   'Smallest standard price move (0.0001 on most pairs).'],
+  ['g-leverage','Leverage',
+   'Borrowed exposure, like buying a house with a small deposit. Gains and losses both get bigger. If we size by risk, it matters little.',
+   'Borrowed exposure. Prop firms typically give 1:30 to 1:100. Irrelevant if you size by risk %, dangerous if you do not.'],
+  ['g-journal','Journal / trade log',
+   'A diary of every trade: why you took it, the result in R, a screenshot. The guest credits it for his turnaround.',
+   'Spreadsheet of every trade with setup, R result, screenshots, notes. Guest credits it, along with publishing calls publicly, for the turnaround.'],
+  ['g-mentor','Mentor / community / alumni',
+   'People who check on you. In the story, the real value was being held accountable, not a secret.',
+   'Sarmaya\'s Discord. The real value he describes is accountability, not secret knowledge.']
+ ]]
+];
+
+/* ---------- helpers ---------- */
+function $(id) { return document.getElementById(id); }
+function todayISO() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function hrs(h) { return h < 1 ? Math.round(h * 60) + ' min' : (Number.isInteger(h) ? h : h.toFixed(1)) + ' h'; }
+function hrsWords(h) { return h < 1 ? 'about ' + Math.round(h * 60) + ' minutes' : 'about ' + (Number.isInteger(h) ? h : h.toFixed(1)) + (h === 1 ? ' hour' : ' hours'); }
+function fmtDate(d) { try { return d.toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'}); } catch (e) { return d.toISOString().slice(0, 10); } }
+function linkHtml(it, textPlain) {
+  if (!it.url) return '';
+  var ext = it.url.charAt(0) !== '#';
+  return '<a href="' + TA.esc(it.url) + '"' + (ext ? ' target="_blank" rel="noopener"' : '') + '>' + TA.esc(textPlain || 'Open link') + '</a>';
+}
+
+/* ---------- curriculum rendering ---------- */
+function renderCurriculum() {
+  [0, 1].forEach(function (ph) {
+    var rows = ITEMS.filter(function (i) { return i.ph === ph; }).map(function (i) {
+      var meta = '<span class="badge">' + hrs(i.h) + '</span>' + (i.url ? ' ' + linkHtml(i, i.url.charAt(0) === '#' ? 'Go to glossary' : 'Open link') : '');
+      return '<div class="check"><input type="checkbox" id="c-' + i.id + '" data-id="' + i.id + '">' +
+        '<div class="body"><label for="c-' + i.id + '"><span class="plain">' + TA.esc(i.plain) + '</span><span class="detail">' + TA.esc(i.detail) + '</span></label>' +
+        '<div class="meta">' + meta + '</div></div></div>';
+    }).join('');
+    $('p' + ph + '-rows').innerHTML = rows;
+    var total = ITEMS.filter(function (i) { return i.ph === ph; }).reduce(function (a, i) { return a + i.h; }, 0);
+    $('p' + ph + '-hours').textContent = 'about ' + total + ' h planned';
+  });
+}
+
+/* ---------- progress ---------- */
+function profile() { var p = TA.store.get('profile', {}); return (p && typeof p === 'object') ? p : {}; }
+function logHours() { return TA.list('learninglog').reduce(function (a, e) { return a + (parseFloat(e.hours) || 0); }, 0); }
+
+function refreshProgress() {
+  var cur = TA.store.get('curriculum', {});
+  [0, 1].forEach(function (ph) {
+    var pr = TA.checklistProgress('phase' + ph, 'curriculum');
+    TA.setProgress('p' + ph + '-bar', pr.pct);
+    $('p' + ph + '-text').textContent = pr.done + ' of ' + pr.total + ' items (' + pr.pct + '%)';
+  });
+  var planned = ITEMS.reduce(function (a, i) { return a + i.h; }, 0);
+  var remaining = ITEMS.filter(function (i) { return !cur[i.id]; }).reduce(function (a, i) { return a + i.h; }, 0);
+  var logged = logHours();
+  var pctH = planned ? Math.min(100, Math.round(logged / planned * 100)) : 0;
+  TA.setProgress('h-bar', pctH);
+  $('h-text').textContent = TA.fmt(logged, 1) + ' h of ' + TA.fmt(planned, 1) + ' h';
+  $('s-logged').textContent = TA.fmt(logged, 1);
+  $('s-planned').textContent = TA.fmt(planned, 1);
+  $('s-remaining').textContent = TA.fmt(remaining, 1);
+
+  var p = profile();
+  var hpw = parseFloat(p.hoursPerWeek);
+  var assumed = !(hpw > 0);
+  if (assumed) hpw = 8;
+  var plainLine, detailLine, finishTxt;
+  if (remaining <= 0) {
+    finishTxt = 'Done';
+    plainLine = 'Every item is ticked. Well done. Next, check the Phase 1 gate on the Roadmap page.';
+    detailLine = 'All Phase 0 and Phase 1 curriculum items ticked. Now evaluate the Phase 1 exit gate numerically on the Roadmap page.';
+    $('finish-note').className = 'callout ok';
+    $('finish-note').innerHTML = '<span class="plain">' + TA.esc(plainLine) + '</span><span class="detail">' + TA.esc(detailLine) + '</span>';
+  } else {
+    var weeks = remaining / hpw;
+    var d = new Date(); d.setDate(d.getDate() + Math.ceil(weeks * 7));
+    finishTxt = fmtDate(d);
+    var hpwTxt = hpw + (assumed ? ' (assumed; set yours on the Start page)' : '');
+    $('finish-note').className = 'callout';
+    $('finish-note').innerHTML =
+      '<span class="plain">At <strong>' + TA.esc(hpwTxt) + ' hours a week</strong>, you will finish all of the learning and practice (Phases 0 and 1) around <strong>' + TA.esc(finishTxt) + '</strong>. That is about ' + Math.ceil(weeks) + ' weeks. If you miss a week, the date moves. That is fine. Just keep ticking.</span>' +
+      '<span class="detail">Remaining planned hours (unticked items) = ' + TA.fmt(remaining, 1) + ' h. At <strong>' + TA.esc(hpwTxt) + ' h/week</strong> (profile.hoursPerWeek), Phase 1 completes around <strong>' + TA.esc(finishTxt) + '</strong> (' + TA.fmt(weeks, 1) + ' weeks). Estimate uses curriculum hour planning figures, not hours logged; the roadmap time box for Phases 0-1 is weeks 1-8.</span>';
+  }
+  $('s-finish').textContent = finishTxt;
+  $('p-plain-line').textContent = 'The bars show how many steps you have ticked. The hours bar shows time you have written in the log, against the time we planned.';
+  $('p-detail-line').textContent = 'Phase bars: ticked items / total (state in "curriculum"). Hours bar: sum of learninglog.hours vs sum of planned item hours.';
+  refreshStart();
+}
+
+function refreshStart() {
+  var cur = TA.store.get('curriculum', {});
+  var next = ITEMS.filter(function (i) { return !cur[i.id]; }).slice(0, 3);
+  var el = $('start-list');
+  if (!next.length) { el.innerHTML = '<li>Everything on the list is ticked. Go to the Roadmap page and check the gates.</li>'; return; }
+  el.innerHTML = next.map(function (i) {
+    var link = i.url ? ' ' + linkHtml(i, i.url.charAt(0) === '#' ? 'Go to the glossary' : 'Open this link') + '.' : '';
+    return '<li><strong>' + TA.esc(i.plain) + '</strong> <span class="badge">' + hrs(i.h) + '</span><br>' +
+      TA.esc(i.doOne) + link + ' Plan ' + hrsWords(i.h) + (i.h > 1 ? ' (work in sittings of 45 to 60 minutes)' : '') +
+      '. Then <a href="#c-' + i.id + '">tick the box</a>.</li>';
+  }).join('');
+}
+
+/* ---------- learning log ---------- */
+function renderLog() {
+  var rows = TA.list('learninglog').map(function (e, idx) { return {e: e, idx: idx}; });
+  rows.sort(function (a, b) { return (b.e.date || '').localeCompare(a.e.date || '') || (b.idx - a.idx); });
+  $('log-body').innerHTML = rows.map(function (r) {
+    var e = r.e;
+    return '<tr><td data-label="Date">' + TA.esc(e.date) + '</td><td data-label="Hours">' + TA.esc(TA.fmt(parseFloat(e.hours), 2)) + '</td>' +
+      '<td data-label="What">' + TA.esc(e.what) + '</td><td data-label="Key takeaway">' + TA.esc(e.takeaway) + '</td><td data-label="Questions">' + TA.esc(e.questions) + '</td>' +
+      '<td class="right"><button class="btn small danger" data-del="' + TA.esc(e.id) + '" type="button">Delete</button></td></tr>';
+  }).join('');
+  $('log-empty').style.display = rows.length ? 'none' : '';
+  $('log-table').style.display = rows.length ? '' : 'none';
+  $('log-total').textContent = TA.fmt(logHours(), 2);
+  $('log-count').textContent = rows.length;
+}
+
+function setupLog() {
+  $('lg-date').value = todayISO();
+  $('log-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var h = parseFloat($('lg-hours').value);
+    var what = $('lg-what').value.trim();
+    if (!(h > 0) || !what) return;
+    TA.push('learninglog', {date: $('lg-date').value || todayISO(), hours: h, what: what, takeaway: $('lg-take').value.trim(), questions: $('lg-q').value.trim()});
+    $('lg-hours').value = ''; $('lg-what').value = ''; $('lg-take').value = ''; $('lg-q').value = '';
+    $('lg-date').value = todayISO();
+    renderLog(); refreshProgress();
+  });
+  $('log-body').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button[data-del]');
+    if (!b) return;
+    if (confirm('Delete this log entry?')) { TA.remove('learninglog', b.dataset.del); renderLog(); refreshProgress(); }
+  });
+}
+
+/* ---------- glossary ---------- */
+var ALL_TERMS = [];
+function renderGlossary() {
+  var html = '';
+  TERMS.forEach(function (g) {
+    html += '<h3 class="group-h">' + TA.esc(g[0]) + '</h3>';
+    g[1].forEach(function (t) {
+      ALL_TERMS.push(t[0]);
+      html += '<details class="term" id="' + t[0] + '" data-term="' + t[0] + '"><summary>' + TA.esc(t[1]) + '</summary><div class="body">' +
+        '<p><strong>In plain words:</strong> ' + TA.esc(t[2]) + '</p>' +
+        '<p class="detail"><strong>In full:</strong> ' + TA.esc(t[3]) + '</p>' +
+        '<div class="tick"><input type="checkbox" id="gq-' + t[0] + '" data-term="' + t[0] + '"><label for="gq-' + t[0] + '">I can explain this without looking</label></div>' +
+        '</div></details>';
+    });
+  });
+  $('g-list').innerHTML = html;
+  var state = TA.store.get('glossaryQuiz', {});
+  $('g-list').querySelectorAll('input[data-term]').forEach(function (cb) {
+    cb.checked = !!state[cb.dataset.term];
+    cb.closest('.term').classList.toggle('known', cb.checked);
+    cb.addEventListener('change', function () {
+      var s = TA.store.get('glossaryQuiz', {});
+      if (cb.checked) s[cb.dataset.term] = true; else delete s[cb.dataset.term];
+      TA.store.set('glossaryQuiz', s);
+      cb.closest('.term').classList.toggle('known', cb.checked);
+      refreshGlossary();
+    });
+  });
+  $('g-filter').addEventListener('change', refreshGlossary);
+  $('g-random').addEventListener('click', function () {
+    var s = TA.store.get('glossaryQuiz', {});
+    var left = ALL_TERMS.filter(function (id) { return !s[id]; });
+    if (!left.length) { alert('All terms are ticked.'); return; }
+    var id = left[Math.floor(Math.random() * left.length)];
+    var el = $(id);
+    el.style.display = '';
+    el.open = true; el.scrollIntoView({behavior: 'smooth', block: 'center'});
+  });
+  $('g-collapse').addEventListener('click', function () { $('g-list').querySelectorAll('details').forEach(function (d) { d.open = false; }); });
+  refreshGlossary();
+}
+function refreshGlossary() {
+  var s = TA.store.get('glossaryQuiz', {});
+  var n = ALL_TERMS.length, k = ALL_TERMS.filter(function (id) { return s[id]; }).length;
+  var pct = n ? Math.round(k / n * 100) : 0;
+  $('g-count').textContent = k + ' of ' + n + ' terms';
+  TA.setProgress('g-bar', pct);
+  var only = $('g-filter').checked;
+  $('g-list').querySelectorAll('details.term').forEach(function (d) { d.style.display = (only && s[d.dataset.term]) ? 'none' : ''; });
+  var g = $('g-gate');
+  if (k === n && n > 0) {
+    g.className = 'callout ok';
+    g.innerHTML = '<strong>All ' + n + ' terms ticked.</strong> You can now tick the glossary gate on the Roadmap page ("explain every term from memory"). The other two Phase 0 gate items still need to be true as well.';
+  } else {
+    g.className = 'callout warn';
+    g.innerHTML = '<strong>Do not tick the glossary gate on the Roadmap yet.</strong> Tick it only when all ' + n + ' terms are checked here (' + (n - k) + ' to go).';
+  }
+}
+
+/* ---------- boot ---------- */
+renderCurriculum();
+TA.bindChecklist('phase0', 'curriculum', refreshProgress);
+TA.bindChecklist('phase1', 'curriculum', refreshProgress);
+(function(){ var n=document.querySelectorAll('#phase0 input[data-id], #phase1 input[data-id]').length; if (n && TA.store.get('curriculumTotal',0)!==n) TA.store.set('curriculumTotal', n); })();
+setupLog(); renderLog();
+renderGlossary();
+refreshProgress();
+</script>
+</body>
+</html>

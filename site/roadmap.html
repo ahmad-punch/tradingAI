@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roadmap - tradingAI</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/app.js"></script>
+<style>
+  .strip { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 12px 0; }
+  .strip .card { margin: 0; padding: 10px 12px; font-size: .9rem; }
+  .strip .ttl { font-weight: 700; }
+  .phasecard h2 { border: 0; margin-top: 0; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+  .check .body { flex: 1; min-width: 0; }
+  .check .live { margin-top: 3px; }
+  .tablewrap { overflow-x: auto; }
+  .handhold ol { margin: 6px 0 0; padding-left: 22px; }
+  .kv dt { color: var(--muted); }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<h1>The roadmap</h1>
+<div class="plain">
+  <p>Six steps, like levels in a game. You cannot honestly move up until the gate at the end of the level is passed, and the gate is always a number, not a feeling. Think of it as a driving test: you do not get the licence because you feel ready, you get it because you did the parking and the roundabout correctly.</p>
+  <p>Nothing here costs money until Phase 3. If you cannot pass a gate in the free phases, that is a cheap and useful answer.</p>
+</div>
+<div class="detail">
+  <p>Six phases. Each has an <strong>entry condition</strong>, a <strong>time box</strong>, <strong>what you do</strong> and an <strong>exit gate</strong> measured by numbers. You cannot skip a gate. If a time box expires without the gate being met, the phase is extended once; if it expires again, the project goes to the stop rule (docs/05). Cash at risk is <strong>$0 through Phase 2</strong>; total cash at risk over the whole plan is capped (D-004, proposed $600 in 12 months).</p>
+  <p>Time assumption: <strong>8-10 hours/week</strong> around a day job. Swing trading on daily/4-hour charts needs ~30-60 minutes of chart work per day plus a weekend review; it does not need you at the screen during market hours.</p>
+</div>
+
+<h2>Timeline</h2>
+<div id="startNote"></div>
+<div class="strip" id="strip"></div>
+<div class="plain"><p class="small muted">Planned dates count from your start date. The "actual" date is the day you ticked the last gate of that phase.</p></div>
+<div class="detail"><p class="small muted">Planned weeks: P0 2, P1 6, P2 16, P3 14, P4 16 (cumulative from <code>profile.startDate</code>). Actual = latest date among that phase's ticked gates (<code>gates</code>). Docs give P3 as 12-16 weeks and P4 as 12-20; the midpoints are used for dates.</p></div>
+
+<h2>The six phases</h2>
+<div id="phases"></div>
+
+<h2>What could the money look like?</h2>
+<div class="plain">
+  <div class="card">
+    <p>Picture a budget envelope of practice money that a firm lets you trade. In a good month, trading well, you might grow it by about 1% (one dollar in every hundred). The firm pays you most of that growth, around 80%. Some months you lose and get nothing.</p>
+    <ul>
+      <li>A $50,000 practice account: a good month pays you about $500.</li>
+      <li>A $200,000 practice account: about $2,000.</li>
+      <li>A $500,000 practice account: about $5,000.</li>
+    </ul>
+    <p><strong>When could that happen?</strong> The first real money, realistically, around month 10 to 14. About $1,000 a month around month 14 to 20. <strong>$50,000 a month is not a plan.</strong> It would need about $4 million of practice money, and firms cap how much one person can hold. A realistic success story is $2,000 to $10,000 a month after 2 to 3 years. Plenty of people never get there.</p>
+  </div>
+</div>
+<div class="detail">
+  <p>Expected income model, all at 1.25%/month and 80% split, for a sense of scale, not a promise:</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Simulated allocation</th><th>Gross/month</th><th>Your 80%</th></tr></thead>
+    <tbody>
+    <tr><td>$50k</td><td>$625</td><td>$500</td></tr>
+    <tr><td>$200k</td><td>$2,500</td><td>$2,000</td></tr>
+    <tr><td>$500k</td><td>$6,250</td><td>$5,000</td></tr>
+    <tr><td>$800k (video guest)</td><td>$10,000</td><td>$8,000</td></tr>
+    <tr><td>$1M</td><td>$12,500</td><td>$10,000</td></tr>
+    <tr><td>$4M (needed for $50k/mo at 1.5%)</td><td>$60,000</td><td>$48,000</td></tr>
+    </tbody>
+  </table></div>
+  <p>Most firms cap allocation at $1-4M <em>per trader</em> and several explicitly stop scaling or impose stricter rules for large accounts. $50k/month is a 4-6 year outcome with low probability, not a plan. $2-10k/month is the realistic success scenario over 2-3 years.</p>
+</div>
+
+<h2>Timeline summary</h2>
+<div class="plain">
+  <div class="callout">
+    <p><strong>First money:</strong> realistically month 10 to 14. <strong>About $1,000 a month:</strong> month 14 to 20. <strong>$50,000 a month:</strong> not a plan. Anyone promising faster is selling something.</p>
+  </div>
+</div>
+<div class="detail">
+  <div class="tablewrap"><table>
+    <thead><tr><th>Phase</th><th>Weeks</th><th>Cumulative</th><th>Cash at risk</th></tr></thead>
+    <tbody>
+    <tr><td>0 Orientation</td><td>2</td><td>week 2</td><td>$0</td></tr>
+    <tr><td>1 Strategy + backtest</td><td>6</td><td>week 8</td><td>$0</td></tr>
+    <tr><td>2 Forward test</td><td>16</td><td>week 24</td><td>$0</td></tr>
+    <tr><td>3 First paid challenge</td><td>12-16</td><td>week 40</td><td>$100-$500</td></tr>
+    <tr><td>4 Funded, first payouts</td><td>12-20</td><td>week 60</td><td>$0</td></tr>
+    <tr><td>5 Scale</td><td>ongoing</td><td>year 2+</td><td>funded from payouts</td></tr>
+    </tbody>
+  </table></div>
+  <p>First dollar earned: realistically <strong>month 10-14</strong>. First $1,000/month: <strong>month 14-20</strong>. Anyone promising faster is selling something.</p>
+</div>
+
+<p class="small muted">Not financial advice. No one involved is a licensed advisor.</p>
+</main>
+
+<script>
+TA.init({page:'roadmap.html'});
+
+(function () {
+  var SKIP_MSG = "You're skipping a gate. The video's guest skipped this one and blew 15 accounts.";
+  var BT_RISK = 0.75;
+
+  /* ---------- content ---------- */
+  var PHASES = [
+    { n: 0, name: 'Orientation', weeks: 2, planned: '2 weeks (week 1-2)',
+      entry: ['Now.', 'Nothing to pass first. Start whenever you are ready.'],
+      cost: ['$0', '$0'],
+      doP: ['Read the plain-language pages of this plan.',
+            'Do the free "Pipsology" beginner school (about 10 hours). It teaches the words and how the buttons work.',
+            'Open a free practice (demo) account and place 20 pretend orders just to learn how it feels.',
+            'Read the rules of two prop firms from start to end and write them down.',
+            'Write your own "why am I doing this" and "when do I stop" on the Decisions page.'],
+      doD: ['Read this repo\'s docs 00-08.',
+            'Babypips School of Pipsology: Preschool to Elementary (currencies, pips, lots, leverage, order types, margin). ~10 hours.',
+            'Open a free MT5 demo (any major broker that serves Pakistan) and a TradingView free account. Place 20 demo orders purely to learn the mechanics: market, limit, stop, SL/TP, partial close, position size calculator.',
+            'Read the rule pages of two prop firms end-to-end (FTMO, FundedNext). Write the rules into tools/challenge_rules.json.',
+            'Write your personal why/stop statement in decisions/DECISIONS.md D-001.'],
+      gates: [
+        { id: 'p0-glossary', p: 'I can explain every word in the glossary from memory, like explaining it to a friend.', d: 'Can explain, from memory, every term in docs/01 (glossary).' },
+        { id: 'p0-possize', p: 'I can work out how big a trade should be ("I will risk this much, my safety stop is this far away") by hand and with the tool.', d: 'Can compute position size for a given risk % and SL distance by hand and with the tool.' },
+        { id: 'p0-rules2firms', p: 'Without looking, I can list the loss limits and other rules of two prop firms (daily loss, total loss, minimum days, consistency, news).', d: 'Can list the daily loss, max loss, min days, consistency and news rules of 2 firms without looking.' }
+      ] },
+    { n: 1, name: 'Build one strategy', weeks: 6, planned: '6 weeks (week 3-8)',
+      entry: ['Phase 0 gate passed.', 'Phase 0 gate'],
+      cost: ['$0', '$0'],
+      doP: ['Finish the free beginner school (the next two levels) and read the two books on staying calm and sizing trades (about 30 hours in total).',
+            'Write down ONE set of trading rules so clear that your brother could follow them and take the same trades as you.',
+            'Test those rules on old charts, by hand: 100 past setups, across several markets and at least two different years. Write each one down.',
+            'Let the tool add up the results. Then ask someone else to read your rules and mark 10 charts. If you both mark the same, the rules are clear.'],
+      doD: ['Babypips Middle School to High School (support/resistance, trends, candlesticks, multiple time frames, risk management, trading plan). ~20 hours.',
+            'Read Trading in the Zone (Mark Douglas) and the position-sizing chapters of Van Tharp. ~10 hours.',
+            'Define one rule-based swing strategy in docs/04-strategy.md: markets, timeframe, entry conditions, SL placement, TP placement, risk %, filters (news, session, weekend), max open trades. Every rule unambiguous enough that your brother could execute it identically.',
+            'Backtest by hand using TradingView bar replay (or FX Replay): 100 historical setups across 3-4 markets and at least two different years. Log each in journal/BACKTEST-LOG.csv. Compute win rate, average R, expectancy, max consecutive losses, max drawdown in R.',
+            'Run tools/journal_stats.py on the log.'],
+      extraP: 'If you miss the gate: change the strategy once, then test 100 fresh setups from a different period. If it fails again, drop that strategy and pick another. Never keep adjusting the rules on the same old charts you tested on; that is just fooling yourself.',
+      extraD: 'If the gate fails: adjust the strategy <em>once</em>, re-run 100 fresh samples (different period). If it fails again, that strategy is dead; pick the next candidate. Never "tune" on the same data you tested on.',
+      gates: [
+        { id: 'p1-backtest-100', live: 'bt-count', p: 'I have tested at least 100 past trades by hand, following my written rules.', d: '≥ 100 hand-backtested trades following the written rules.' },
+        { id: 'p1-expectancy', live: 'bt-exp', p: 'On average, each test trade made at least 0.3 times what I risked.', d: 'Expectancy ≥ +0.3R per trade.' },
+        { id: 'p1-maxdd', live: 'bt-dd', p: 'In the test, my worst losing stretch (risking 0.75% a trade) would have cost less than 6% of the account. The firm limit is usually 10%, so we want a safety margin.', d: 'Max drawdown in the backtest, at 0.75% risk per trade, stays under 6% (firm limit is usually 10%; we want margin).' },
+        { id: 'p1-second-reader', p: 'Someone else read my rules and marked 10 charts. We agreed on at least 8 of 10.', d: 'Rules written such that two people would take the same trades (test: someone else reads the rules and marks 10 charts; target ≥ 8/10 agreement).' },
+        { id: 'p1-d005', live: 'dec-D-005', p: 'I wrote down "Strategy v1 frozen" in the Decisions page, so I cannot quietly change the rules later.', d: 'Decision logged: D-005 "Strategy v1 frozen".' }
+      ] },
+    { n: 2, name: 'Forward test on demo', weeks: 16, planned: '16 weeks (about 3-4 months, week 9-24)',
+      entry: ['Phase 1 gate passed.', 'Phase 1 gate'],
+      cost: ['$0', '$0'],
+      doP: ['Trade your frozen rules on a free practice account, sized like the real challenge account, risking only 0.5 to 0.75% on each trade.',
+            'Every day, run the rule-checker tool. It tells you if you would have broken the firm\'s loss rules. If it says yes, treat it as a real failure: reset the practice account and write it down.',
+            'In month 2 or 3, take one free trial from a prop firm to see the real dashboard.',
+            'Write down every trade, with a screenshot. Every Sunday, do the weekly review and send it to your accountability partner.',
+            'The main score is not profit. It is "did I follow my own rules?"'],
+      doD: ['Trade the frozen strategy on an MT5 demo sized like the target challenge (e.g. $25k or $50k), risking 0.5-0.75% per trade.',
+            'Run tools/rule_guard.py daily: it reads the demo account history and reports whether you would have breached the firm\'s daily/max loss, min days, consistency or news rules. Treat a simulated breach exactly as a real one: reset the demo and log a blown account.',
+            'Take at least one free prop-firm trial (FTMO Free Trial, FundedNext trial) in month 2-3 to feel the real dashboard.',
+            'Journal every trade in journal/TRADE-LOG.csv with screenshots. Weekly review every Sunday using journal/WEEKLY-REVIEW-TEMPLATE.md.',
+            'Rule adherence % is the headline metric, not profit.'],
+      extraP: 'Most people fail this gate. That is the point: it is free to fail here, and expensive to fail later. The numbers below are measured over the last 3 months only.',
+      extraD: 'Most people fail this gate. That is the point: it is free to fail here. All numeric gates are measured over the <em>last</em> 3 calendar months.',
+      gates: [
+        { id: 'p2-trades-40', live: 'fw-count', p: 'I have taken at least 40 practice trades in the last 3 months.', d: '≥ 40 forward-tested trades.' },
+        { id: 'p2-adherence', live: 'fw-adh', p: 'I followed my own rules on at least 95 out of every 100 trades.', d: 'Rule adherence ≥ 95% (trades taken exactly per plan / total trades).' },
+        { id: 'p2-expectancy', live: 'fw-exp', p: 'On average each practice trade made at least 0.25 times what I risked.', d: 'Expectancy ≥ +0.25R.' },
+        { id: 'p2-no-breach', p: 'In the last 60 days the rule-checker never said I broke a firm loss rule.', d: 'Zero simulated breaches in the last 60 days (tools/rule_guard.py).' },
+        { id: 'p2-return-dd', live: 'fw-ret', p: 'Over 3 months I made at least 6% on the practice account, and its worst dip was no more than 5%.', d: 'Net return over the 3 months ≥ +6% (would pass a ~8-10% target in ~4 months with margin) and max drawdown ≤ 5%.' },
+        { id: 'p2-free-trial', p: 'I did at least one free trial challenge and passed it, or stayed within the rules.', d: 'Passed at least one free trial challenge, or came within the rules on it.' },
+        { id: 'p2-od6', live: 'od-6', p: 'I spent an hour with a lawyer or accountant about whether paying these fees from Pakistan is OK, and wrote it down. (Open question OD-6.)', d: 'OD-6 legal/tax check closed: one-hour consultation (FERA/SBP circulars, foreign-source income), written summary in research/legal.md.' },
+        { id: 'p2-d006', live: 'dec-D-006', p: 'I wrote down "Go for first paid challenge" on the Decisions page, naming the firm, the account size and the fee.', d: 'Decision logged: D-006 "Go for first paid challenge" with firm, size and fee named.' }
+      ] },
+    { n: 3, name: 'First paid challenge', weeks: 14, planned: '14 weeks (12-16; month 7-10)',
+      entry: ['Phase 2 gate passed, and the money is inside the $600 budget.', 'Phase 2 gate + money available within the loss budget'],
+      cost: ['1 to 2 attempt fees, about $100 to $250 each', '1-2 challenge fees (~$100-$250 each)'],
+      doP: ['Buy a mid-sized, two-step challenge at a firm with a good track record (probably $25,000 or $50,000).',
+            'Trade exactly as you did in practice: same rules, same risk, same hours. The only difference is that the fee is real.',
+            'Aim for about 3% a month. Do not try to pass in a week. The first step of the challenge should take 2 to 4 months. Check that the firm has no time limit before buying.',
+            'Keep the journal, the rule-checker and the Sunday review going.'],
+      doD: ['Buy a mid-sized two-step challenge at a reputable firm (research in docs/02); likely $25k-$50k. Smaller sizes have the same fee-per-dollar and lower payouts; larger have higher fees and the same pass probability.',
+            'Trade identically to Phase 2. Same risk, same strategy, same hours. The only thing that changes is that the fee is real.',
+            'Target 3%/month. Do not try to pass in a week. Phase 1 of the challenge should take 2-4 months. Most firms now have no time limit; confirm before buying.',
+            'Continue journal + rule guard + weekly review.'],
+      extraP: 'If you fail the challenge: write down what went wrong. If you broke your own rules, go back to practice for 60 days before trying again. If you followed the rules and the plan just did not work, stop and think; do not simply buy another attempt. Two paid attempts is the maximum inside the first budget.',
+      extraD: 'If failed: written post-mortem in journal/POST-MORTEMS.md. If the failure was a <strong>rule-adherence</strong> failure, go back to Phase 2 for 60 days before the second attempt. If it was a <strong>strategy</strong> failure within rules (edge did not show), stop and re-evaluate in a decision record. Maximum <strong>two</strong> paid attempts inside the first loss budget.',
+      gates: [
+        { id: 'p3-passed', p: 'I passed both steps of the challenge.', d: 'Challenge passed (both phases) → Phase 4.' }
+      ] },
+    { n: 4, name: 'Funded, first payouts', weeks: 16, planned: '16 weeks (12-20; month 10-15)',
+      entry: ['You passed the challenge.', 'Passed challenge'],
+      cost: ['$0 new', '$0 new'],
+      doP: ['Trade the same rules with the same risk. Consider dropping to 0.5% for the first month; the first payout matters more than its size.',
+            'Ask for the first payout on the first date you are allowed, even if it is small. It proves the firm really pays, and many firms refund the fee.',
+            'After that first payout, re-read the psychology page ("the good times are also dangerous").',
+            'Half of every payout goes to the household, not back into trading, until the trading bankroll of payouts reaches $2,000.'],
+      doD: ['Same strategy, same risk (consider dropping to 0.5% for the first month; the first payout matters more than its size).',
+            'Request the first payout at the first eligible date even if small; it validates the firm and refunds the fee at most firms.',
+            'After the first payout: log it, re-read docs/06-psychology.md ("the good times are also dangerous").',
+            'The first 50% of every payout goes to the household, never back into trading, until the payout bankroll reaches $2,000 (docs/05).'],
+      gates: [
+        { id: 'p4-payouts', p: 'I have received two payouts in a row.', d: 'Two consecutive payouts received.' },
+        { id: 'p4-adherence', live: 'fw-adh', p: 'I am still following my own rules on at least 95 out of 100 trades.', d: 'Rule adherence still ≥ 95%.' },
+        { id: 'p4-d010', live: 'dec-D-010', p: 'I wrote down "Scale or hold" on the Decisions page.', d: 'Decision logged: D-010 "Scale or hold".' }
+      ] },
+    { n: 5, name: 'Scale', weeks: 0, planned: 'Ongoing (month 15 onwards)',
+      entry: ['Phase 4 gate passed.', 'Phase 4 gate'],
+      cost: ['Paid for from payouts, not salary', 'Funded from payouts, not salary'],
+      doP: ['Use payout money (never salary) to buy more attempts at one or two other trustworthy firms. At most one new attempt a month. Spreading across firms matters because firms sometimes collapse.',
+            'Use each firm\'s own scaling plan.',
+            'This is also when you can start teaching your brother or wife. They start at Phase 0 using this same site, with you as mentor.'],
+      doD: ['Use payouts (not salary) to buy additional challenges at 1-2 other reputable firms, max one new challenge per month. Diversifies firm risk (firms collapse).',
+            'Use the firm\'s scaling plan.',
+            'Teaching starts here (brother/wife): they begin at Phase 0 using this repo, with you as mentor (docs/08).'],
+      gates: [] }
+  ];
+
+  /* ---------- helpers ---------- */
+  function esc(s) { return TA.esc(s); }
+  function num(v) { var x = parseFloat(v); return isNaN(x) ? null : x; }
+  function parseISO(s) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
+  function isoOf(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function addWeeks(d, w) { var x = new Date(d.getTime()); x.setDate(x.getDate() + w * 7); return x; }
+  function gatesOf(i) { return PHASES[i].gates; }
+  function isDone(i, g) { return gatesOf(i).length > 0 && gatesOf(i).every(function (x) { return g[x.id]; }); }
+  function currentPhase(g) { for (var i = 0; i < 5; i++) if (!isDone(i, g)) return i; return 5; }
+
+  function numRows(key) {
+    return TA.list(key).filter(function (r) { return r && num(r.resultR) !== null; });
+  }
+  function mean(a) { return a.length ? a.reduce(function (x, y) { return x + y; }, 0) / a.length : null; }
+  function isTrue(v) { return v === true || v === 'true' || v === 'yes'; }
+  function rowDate(r) { return r.dateClose || r.dateOpen || ''; }
+  function curve(rs, fixedRisk) {
+    var s = rs.slice().sort(function (a, b) { return rowDate(a) < rowDate(b) ? -1 : rowDate(a) > rowDate(b) ? 1 : 0; });
+    var eq = 0, peak = 0, dd = 0;
+    s.forEach(function (r) {
+      var risk = fixedRisk || num(r.riskPct) || BT_RISK;
+      eq += num(r.resultR) * risk; if (eq > peak) peak = eq; if (peak - eq > dd) dd = peak - eq;
+    });
+    return { ret: eq, dd: dd };
+  }
+  function last3m(rs) {
+    var c = new Date(); c.setDate(c.getDate() - 92); var cut = isoOf(c);
+    return rs.filter(function (r) { var d = rowDate(r); return !d || d >= cut; });
+  }
+  function sign(x) { return (x >= 0 ? '+' : '') + TA.fmt(x, 2); }
+
+  /* live values: return {p, d, ok} or null */
+  function live(key) {
+    var bt, fw, n, m, c;
+    switch (key) {
+      case 'bt-count':
+        n = TA.list('backtest').length;
+        return { p: 'Your test log has ' + n + ' of the 100 trades needed.', d: 'backtest rows: ' + n + ' (need ≥ 100)', ok: n >= 100 };
+      case 'bt-exp':
+        bt = numRows('backtest'); n = bt.length;
+        if (!n) return { p: 'No test trades logged yet.', d: 'no backtest rows with resultR', ok: null };
+        m = mean(bt.map(function (r) { return num(r.resultR); }));
+        return { p: 'On average each trade made ' + TA.fmt(m, 2) + ' times what you risked. You need 0.30 or more.' + (n < 100 ? ' (Only ' + n + ' trades so far, too few to trust.)' : ''),
+                 d: 'expectancy = mean resultR = ' + sign(m) + 'R over ' + n + ' trades (need ≥ +0.30R)' + (n < 100 ? '; sample < 100' : ''), ok: m >= 0.3 && n >= 100 };
+      case 'bt-dd':
+        bt = numRows('backtest'); n = bt.length;
+        if (!n) return { p: 'No test trades logged yet.', d: 'no backtest rows with resultR', ok: null };
+        c = curve(bt, BT_RISK);
+        return { p: 'Your worst losing stretch so far would have cost ' + TA.fmt(c.dd, 1) + '% of the account. You need under 6%.',
+                 d: 'max drawdown at ' + BT_RISK + '%/trade (additive, in date order): ' + TA.fmt(c.dd, 2) + '% (need < 6%)', ok: c.dd < 6 && n >= 100 };
+      case 'fw-count':
+        fw = numRows('trades'); m = last3m(fw).length;
+        return { p: 'You have logged ' + m + ' practice trades in the last 3 months. You need 40.', d: 'trades (last ~3 months): ' + m + '; all time: ' + TA.list('trades').length + ' (need ≥ 40)', ok: m >= 40 };
+      case 'fw-adh':
+        fw = last3m(TA.list('trades').filter(function (r) { return r && (r.rulesFollowed === true || r.rulesFollowed === false || r.rulesFollowed === 'true' || r.rulesFollowed === 'false'); }));
+        if (!fw.length) return { p: 'No trades logged yet.', d: 'no trades with rulesFollowed', ok: null };
+        n = fw.filter(function (r) { return isTrue(r.rulesFollowed); }).length; m = n / fw.length * 100;
+        return { p: 'You followed your rules on ' + TA.fmt(m, 0) + '% of trades (' + n + ' of ' + fw.length + '). You need 95%.', d: 'adherence (last ~3 months) = ' + n + '/' + fw.length + ' = ' + TA.fmt(m, 1) + '% (need ≥ 95%)', ok: m >= 95 };
+      case 'fw-exp':
+        fw = last3m(numRows('trades')); n = fw.length;
+        if (!n) return { p: 'No practice trades logged yet.', d: 'no trades with resultR', ok: null };
+        m = mean(fw.map(function (r) { return num(r.resultR); }));
+        return { p: 'On average each trade made ' + TA.fmt(m, 2) + ' times what you risked. You need 0.25 or more.' + (n < 40 ? ' (Only ' + n + ' trades so far.)' : ''), d: 'expectancy (last ~3 months) = ' + sign(m) + 'R over ' + n + ' trades (need ≥ +0.25R)', ok: m >= 0.25 && n >= 40 };
+      case 'fw-ret':
+        fw = last3m(numRows('trades')); n = fw.length;
+        if (!n) return { p: 'No practice trades logged yet.', d: 'no trades with resultR', ok: null };
+        c = curve(fw, null);
+        return { p: 'Over the last 3 months the account would be ' + (c.ret >= 0 ? 'up ' : 'down ') + TA.fmt(Math.abs(c.ret), 1) + '%, with a worst dip of ' + TA.fmt(c.dd, 1) + '%. You need up 6% or more, dip 5% or less.',
+                 d: 'net return = Σ(resultR × riskPct) = ' + sign(c.ret) + '% (need ≥ +6%); max DD = ' + TA.fmt(c.dd, 2) + '% (need ≤ 5%)', ok: c.ret >= 6 && c.dd <= 5 };
+      case 'od-6':
+        m = (TA.store.get('openDecisions', {}) || {})['OD-6'];
+        return { p: m && m.resolved ? 'The Decisions page says this is closed.' : 'The Decisions page says this is still open.', d: 'openDecisions[OD-6].resolved = ' + (m && m.resolved ? 'true' : 'false'), ok: !!(m && m.resolved) };
+      default:
+        if (key.indexOf('dec-') === 0) {
+          var id = key.slice(4), dd = (TA.store.get('decisions', {}) || {})[id], st = dd && dd.status ? dd.status : 'Proposed';
+          return { p: 'The Decisions page says: ' + st + '.', d: 'decisions[' + id + '].status = ' + st + ' (needs Accepted)', ok: st === 'Accepted' };
+        }
+    }
+    return null;
+  }
+  function liveHtml(key) {
+    var v = live(key); if (!v) return '';
+    var b = v.ok === null ? '' : v.ok ? ' <span class="badge ok">looks met</span>' : ' <span class="badge warn">not yet</span>';
+    return '<span class="plain">' + esc(v.p) + '</span><span class="detail">' + esc(v.d) + '</span>' + b;
+  }
+
+  /* ---------- build phase cards once ---------- */
+  function buildPhases() {
+    var h = '';
+    PHASES.forEach(function (ph) {
+      var li = function (a) { return '<ul>' + a.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'; };
+      h += '<section class="card phase phasecard" id="ph-' + ph.n + '">' +
+        '<h2>Phase ' + ph.n + ': ' + esc(ph.name) + ' <span class="badge" id="st-' + ph.n + '"></span></h2>' +
+        '<div class="kv small"><div class="meta">Entry</div><div><span class="plain">' + esc(ph.entry[0]) + '</span><span class="detail">' + esc(ph.entry[1]) + '</span></div>' +
+        '<div class="meta">Time box</div><div>' + esc(ph.planned) + '</div>' +
+        '<div class="meta">Cost</div><div><span class="plain">' + esc(ph.cost[0]) + '</span><span class="detail">' + esc(ph.cost[1]) + '</span></div>' +
+        '<div class="meta">Dates</div><div id="dt-' + ph.n + '"></div></div>' +
+        '<h3>What you do</h3><div class="plain">' + li(ph.doP) + '</div><div class="detail">' + li(ph.doD) + '</div>';
+      if (ph.extraP) h += '<div class="callout plain">' + esc(ph.extraP) + '</div><div class="callout detail">' + ph.extraD + '</div>';
+      if (ph.gates.length) {
+        h += '<h3>Exit gate <span class="meta">(all required)</span></h3><div id="gates-p' + ph.n + '">';
+        ph.gates.forEach(function (g) {
+          h += '<div class="check"><input type="checkbox" id="cb-' + g.id + '" data-id="' + g.id + '"><div class="body"><label for="cb-' + g.id + '"><span class="plain">' + esc(g.p) + '</span><span class="detail">' + esc(g.d) + '</span></label>' +
+            (g.live ? '<div class="meta live" data-live="' + g.live + '"></div>' : '') + '</div></div>';
+        });
+        h += '</div><div class="progress" id="bar-' + ph.n + '"><span></span></div><div class="meta" id="pct-' + ph.n + '"></div>' +
+          '<div id="skip-' + ph.n + '"></div>' +
+          '<div class="callout ok plain handhold" id="hh-' + ph.n + '"></div>';
+      } else {
+        h += '<div class="callout ok plain handhold"><strong>Each month, three things:</strong><ol><li>Buy at most one new attempt, paid from payouts.</li><li>Put half of every payout into the household, not back into trading, until the payout bankroll reaches $2,000.</li><li>Keep the weekly review going. Stop if any stop-rule on the Decisions page is hit.</li></ol></div>' +
+          '';
+      }
+      h += '</section>';
+    });
+    document.getElementById('phases').innerHTML = h;
+  }
+
+  /* ---------- update in place ---------- */
+  function render() {
+    var g = TA.store.get('gates', {});
+    var prof = TA.store.get('profile', null) || {};
+    var start = parseISO(prof.startDate);
+    var cur = currentPhase(g);
+
+    document.getElementById('startNote').innerHTML = start ? '' :
+      '<div class="callout warn"><span class="plain">Planned dates need your start date. Set it on the <a href="index.html">Start page</a>.</span><span class="detail">No <code>profile.startDate</code>; planned dates unavailable. Set it on the <a href="index.html">Start page</a>.</span></div>';
+
+    var strip = '', cum = 0;
+    PHASES.forEach(function (ph, i) {
+      var done = isDone(i, g), status = done ? 'done' : (i === cur ? 'current' : 'locked');
+      cum += ph.weeks;
+      var planned = ph.weeks ? (start ? isoOf(addWeeks(start, cum)) : '+' + cum + ' wk') : 'ongoing';
+      var actual = '-';
+      if (done) actual = gatesOf(i).map(function (x) { return g[x.id]; }).sort().pop();
+      else if (i === 5 && cur === 5) actual = 'in progress';
+
+      var card = document.getElementById('ph-' + i);
+      card.className = 'card phase phasecard ' + status;
+      var st = document.getElementById('st-' + i);
+      if (done) { st.className = 'badge ok'; st.textContent = 'Done'; }
+      else if (i === cur) { st.className = 'badge'; st.style.color = 'var(--accent)'; st.style.borderColor = 'var(--accent)'; st.textContent = 'Current'; }
+      else { st.className = 'badge warn'; st.style.color = ''; st.style.borderColor = ''; st.textContent = 'Locked until Phase ' + cur + ' gate'; }
+      document.getElementById('dt-' + i).innerHTML = (ph.weeks ? 'planned end ' + esc(planned) : 'no end date') + ' &middot; actual ' + esc(actual);
+
+      strip += '<div class="card phase ' + status + '"><div class="ttl">Phase ' + i + '</div><div>' + esc(ph.name) + '</div>' +
+        '<div class="meta">' + (ph.weeks ? ph.weeks + ' wk' : 'ongoing') + ' &middot; ' + (status === 'done' ? 'done' : status === 'current' ? 'current' : 'locked') + '</div>' +
+        '<div class="meta">plan: ' + esc(planned) + '</div><div class="meta">actual: ' + esc(actual) + '</div></div>';
+
+      /* progress + hand-holding + skip warning */
+      if (gatesOf(i).length) {
+        var pr = TA.checklistProgress('gates-p' + i, 'gates');
+        TA.setProgress('bar-' + i, pr.pct);
+        document.getElementById('pct-' + i).textContent = pr.done + ' of ' + pr.total + ' gates ticked (' + pr.pct + '%)';
+
+        var todo = gatesOf(i).filter(function (x) { return !g[x.id]; }).slice(0, 3);
+        var hh = document.getElementById('hh-' + i);
+        if (!todo.length) hh.innerHTML = '<strong>All gates in this phase are ticked.</strong> Check the numbers once more, then move on.';
+        else hh.innerHTML = '<strong>' + (i === cur ? 'This week, do these ' + todo.length + ' thing' + (todo.length > 1 ? 's' : '') : 'When you get here, the first ' + todo.length + ' thing' + (todo.length > 1 ? 's are' : ' is')) + ':</strong><ol>' + todo.map(function (x) { return '<li>' + esc(x.p) + '</li>'; }).join('') + '</ol>';
+
+        var skipping = false;
+        var anyChecked = gatesOf(i).some(function (x) { return g[x.id]; });
+        for (var j = 0; j < i; j++) if (!isDone(j, g)) skipping = true;
+        document.getElementById('skip-' + i).innerHTML = (anyChecked && skipping) ? '<div class="callout bad"><strong>' + esc(SKIP_MSG) + '</strong></div>' : '';
+      }
+    });
+    document.getElementById('strip').innerHTML = strip;
+
+    document.querySelectorAll('[data-live]').forEach(function (el) { el.innerHTML = liveHtml(el.dataset.live); });
+  }
+
+  buildPhases();
+  TA.bindChecklist('phases', 'gates', function () { render(); });
+  /* refresh live values if another tab/page changed data */
+  document.addEventListener('ta:change', function () { render(); });
+  window.addEventListener('pageshow', function () { render(); });
+})();
+</script>
+</body>
+</html>
